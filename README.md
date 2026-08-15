@@ -62,7 +62,7 @@ cp .env.example .env
 forge test
 ```
 
-部署（需要真实 Monad Testnet MON 与部署者私钥，见 `contracts/.env.example`）：
+合约已部署到 Monad Testnet（见上方部署信息表），前端直接使用该地址即可，无需重新部署。如需重新部署（例如比赛官方临时更换网络参数）：
 
 ```bash
 cd contracts
@@ -82,12 +82,41 @@ forge script script/Deploy.s.sol --rpc-url "$MONAD_RPC_URL" --broadcast
 - `OPENAI_API_KEY` — 可选，图片生成软依赖
 - `PINATA_JWT` — 图片/metadata 上传 IPFS
 - `EXECUTOR_PRIVATE_KEY` — 服务端 executor，仅用于提交/揭晓作品，不可提取悬赏资金
-- `AGENT_PAYOUT_ADDRESS_{PIXELFORGE,NEONMUSE,MYTHICAI}` — 各 Creator Agent 收款地址（未设置时回退到 Anvil 测试地址）
+- `AGENT_PAYOUT_ADDRESS_{PIXELFORGE,NEONMUSE,MYTHICAI}` — 各 Creator Agent 收款地址；未设置时回退到 Anvil 测试地址，**仅适用于本地 Anvil 链**，公网部署必须设置为真实地址（原因见下方 Vercel 清单与 `specs/LESSONS.md` 2026-08-15 条目）
 - `APP_URL` — 本应用公网 Origin，用于 NFT metadata 的 `external_url`
 
 `contracts/.env.example` 另含 `DEPLOYER_PRIVATE_KEY`、`EXECUTOR_ADDRESS`、`MONAD_CHAIN_ID` 等部署脚本用变量。
 
 所有私钥/API Key 只通过部署平台（Vercel）环境变量注入，不写入代码仓库。
+
+## Vercel 部署环境变量清单
+
+在 Vercel 项目的 Environment Variables 里逐项配置（Production 环境）：
+
+| 变量 | 值来源 | 是否必需 |
+| --- | --- | --- |
+| `NEXT_PUBLIC_MONAD_RPC_URL` | `https://testnet-rpc.monad.xyz/` | 必需 |
+| `NEXT_PUBLIC_MONAD_CHAIN_ID` | `10143` | 必需 |
+| `NEXT_PUBLIC_MONAD_EXPLORER_URL` | `https://testnet.monadexplorer.com/` | 必需 |
+| `NEXT_PUBLIC_BOUNTY_MINT_ADDRESS` | `0x253722F7A82321979CC4a0eE876C9399907C971C`（已部署） | 必需 |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | 从本地 `.env` 复制 | 必需 |
+| `OPENAI_API_KEY` | 从本地 `.env` 复制（未配置则自动走缓存兜底，见上文） | 可选 |
+| `PINATA_JWT` | 从本地 `.env` 复制 | 必需 |
+| `EXECUTOR_PRIVATE_KEY` | 从本地 `.env` 复制 | 必需 |
+| `AGENT_PAYOUT_ADDRESS_PIXELFORGE` | `0x23681752c62d475c21f0ac6F54d6Dd5472a7E647` | 必需（已验证真实收款/铸造成功，勿改回 Anvil 默认地址） |
+| `AGENT_PAYOUT_ADDRESS_NEONMUSE` | `0x0e9eaDBb828196613cefb07570818CC88CE9ad4A` | 必需（同上） |
+| `AGENT_PAYOUT_ADDRESS_MYTHICAI` | `0x443a0Fa4B5C8a64Ab46E59B50577dc78556cB865` | 必需（同上） |
+| `APP_URL` | Vercel 分配的正式域名（如 `https://<project>.vercel.app`），部署后需回填 | 必需 |
+
+Vercel 首次部署会分配域名，回填 `APP_URL` 后触发一次 Redeploy 使其生效（影响 NFT metadata 的 `external_url` 字段）。
+
+## GitHub 推送前检查
+
+- [x] `.gitignore`（根目录 + `contracts/`）覆盖 `.env`、`.env.local`、`cache/`、`broadcast/`、`codex-review/`，已核实无历史提交触碰过这些路径
+- [x] 已用 `git grep`/`git log --all` 核实私钥、Pinata JWT 等敏感值从未出现在任何已跟踪文件或提交历史中
+- [x] 仓库无 `.pem`/`.key`/keystore 等凭据类文件被跟踪
+- [ ] 推送为全新创建的公开仓库（PRD §22 要求），不要推到已有的私有仓库
+- [ ] 推送后在 GitHub 网页快速浏览一遍文件树，确认没有意外携带的大文件或二进制产物
 
 ## 核心流程
 
