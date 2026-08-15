@@ -5,11 +5,12 @@ import type { Hash } from "viem";
 
 import { CreateBountyForm } from "@/components/create-bounty-form";
 import { CreatingStatusPanel } from "@/components/creating-status-panel";
+import { CreatorArena } from "@/components/creator-arena";
 import { Header } from "@/components/header";
 import { NetworkBanner } from "@/components/network-banner";
 import { dictionary } from "@/lib/i18n";
 
-type CreatedBounty = { bountyId: bigint; txHash: Hash };
+type CreatedBounty = { bountyId: bigint; txHash: Hash; brief: string };
 type PageStatus = "idle" | "creating";
 
 export default function Home() {
@@ -36,9 +37,12 @@ export default function Home() {
           </p>
         </section>
 
-        <div className="w-full">
+        <div className="flex w-full flex-col gap-8">
           {status === "creating" && created ? (
-            <CreatingStatusPanel bountyId={created.bountyId} txHash={created.txHash} />
+            <>
+              <CreatingStatusPanel bountyId={created.bountyId} txHash={created.txHash} />
+              <CreatorArena bountyId={created.bountyId} brief={created.brief} />
+            </>
           ) : (
             <CreateBountyForm onCreated={handleCreated} />
           )}

@@ -1,6 +1,6 @@
-import type { Address, Hex } from "viem";
+import type { Address, Hash, Hex } from "viem";
 
-import type { AgentId } from "./agents/personas";
+import type { AgentId } from "./agents/personas.ts";
 
 export type AgentJobStatus =
   | "generating"
@@ -10,6 +10,13 @@ export type AgentJobStatus =
   | "revealed"
   | "failed";
 
+// Tracks the transient lifecycle of a single on-chain tx separately from the
+// coarse `status` above — `status` only flips to "committed"/"revealed" once
+// the corresponding receipt confirms (specs/4.commit-reveal-execution design.md
+// data model), so the UI can show Pending/Confirmed/Failed underneath a card
+// that's still showing "generated" while its commit tx is in flight.
+export type TxReceiptStatus = "pending" | "confirmed" | "failed";
+
 export interface AgentJobState {
   agentId: AgentId;
   name: string;
@@ -18,8 +25,13 @@ export interface AgentJobState {
   source?: "generated" | "cache_fallback";
   imageBuffer?: Buffer;
   imageHash?: Hex;
+  imageURI?: string;
   metadataURI?: string;
   commitHash?: Hex;
+  commitTxHash?: Hash;
+  commitReceiptStatus?: TxReceiptStatus;
+  revealTxHash?: Hash;
+  revealReceiptStatus?: TxReceiptStatus;
   // Server-internal only — must never appear in a public API response before
   // the corresponding on-chain Commit lands (specs/3.agent-orchestration-generation
   // design.md, PRD §1.1). Revealing it early would let anyone forge the winning
@@ -28,10 +40,12 @@ export interface AgentJobState {
   error?: string;
 }
 
+export type JobStatus = "generating" | "generated" | "committed" | "revealed" | "failed";
+
 export interface JobState {
   jobId: string;
   bountyId: string;
-  status: "generating" | "generated" | "failed";
+  status: JobStatus;
   agents: AgentJobState[];
   createdAt: number;
 }
@@ -49,11 +63,23 @@ export type PublicAgentState = Pick<
   | "payoutAddress"
   | "source"
   | "imageHash"
+  | "imageURI"
   | "metadataURI"
   | "commitHash"
+  | "commitTxHash"
+  | "commitReceiptStatus"
+  | "revealTxHash"
+  | "revealReceiptStatus"
 >;
 
 export function toPublicAgentState(agent: AgentJobState): PublicAgentState {
+  // imageURI/metadataURI point at the actual artwork (metadataURI's JSON embeds
+  // the image URI too) — Feature 4 fills these in as soon as Pinata upload
+  // finishes, which is well before the on-chain Reveal. Gating them on
+  // status === "revealed" is what actually enforces "揭晓前不展示任何作品内容"
+  // (specs/4.commit-reveal-execution AC-002); imageHash/commitHash are just
+  // fingerprints and stay public throughout, same as before.
+  const revealed = agent.status === "revealed";
   return {
     agentId: agent.agentId,
     name: agent.name,
@@ -61,8 +87,13 @@ export function toPublicAgentState(agent: AgentJobState): PublicAgentState {
     payoutAddress: agent.payoutAddress,
     source: agent.source,
     imageHash: agent.imageHash,
-    metadataURI: agent.metadataURI,
+    imageURI: revealed ? agent.imageURI : undefined,
+    metadataURI: revealed ? agent.metadataURI : undefined,
     commitHash: agent.commitHash,
+    commitTxHash: agent.commitTxHash,
+    commitReceiptStatus: agent.commitReceiptStatus,
+    revealTxHash: agent.revealTxHash,
+    revealReceiptStatus: agent.revealReceiptStatus,
   };
 }
 
@@ -105,13 +136,17 @@ export function getJob(jobId: string): JobState | undefined {
   return jobs.get(jobId);
 }
 
-// Guards against duplicate concurrent generation jobs for the same bounty —
-// each job spawns three paid OpenAI requests, so repeated POSTs for the same
-// bountyId while one is already in flight would otherwise multiply cost for
-// no benefit (see specs/memory/ for the codex-review finding this addresses).
+// Guards against duplicate concurrent pipeline runs for the same bounty — a
+// job is "active" from the moment it's created until it reaches a terminal
+// state (revealed or failed). Without this, a duplicate POST while Commit/Reveal
+// txs are still in flight (job.status === "generated" or "committed", not
+// "generating") would kick off a second full pipeline for the same bounty,
+// wasting a second round of paid OpenAI/Pinata calls and racing on-chain
+// commitWork calls that would just revert as "already committed" (see
+// specs/memory/ for the original codex-review finding this addresses).
 export function findActiveJobByBountyId(bountyId: string): JobState | undefined {
   for (const job of jobs.values()) {
-    if (job.bountyId === bountyId && job.status === "generating") {
+    if (job.bountyId === bountyId && job.status !== "revealed" && job.status !== "failed") {
       return job;
     }
   }
@@ -127,8 +162,29 @@ export function updateAgentState(jobId: string, agentId: AgentId, patch: Partial
   recomputeJobStatus(job);
 }
 
+// Tolerates a permanently-failed agent alongside others that keep progressing
+// (e.g. one agent's Pinata upload fails while the other two commit fine) —
+// the contract itself is the real gate: revealWork reverts unless all three
+// commits landed, so the commit/reveal executor (src/lib/agents/pipeline.ts)
+// only attempts reveal once exactly three agents reach "committed", never
+// inferring readiness from this aggregate alone.
 function recomputeJobStatus(job: JobState): void {
-  const allSettled = job.agents.every((a) => a.status !== "generating");
-  const allFailed = job.agents.every((a) => a.status === "failed");
-  job.status = !allSettled ? "generating" : allFailed ? "failed" : "generated";
+  const statuses = job.agents.map((a) => a.status);
+  if (statuses.some((s) => s === "generating")) {
+    job.status = "generating";
+    return;
+  }
+  if (statuses.every((s) => s === "failed")) {
+    job.status = "failed";
+    return;
+  }
+  if (statuses.every((s) => s === "revealed" || s === "failed")) {
+    job.status = "revealed";
+    return;
+  }
+  if (statuses.every((s) => s === "committed" || s === "revealed" || s === "failed")) {
+    job.status = "committed";
+    return;
+  }
+  job.status = "generated";
 }

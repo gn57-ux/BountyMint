@@ -1,6 +1,6 @@
 import { createPublicClient, http } from "viem";
 
-import { monadChain } from "./monad-chain";
+import { monadChain } from "./monad-chain.ts";
 
 // Server-side read client shared by any API route that needs to verify
 // on-chain bounty state (creator, status, deadline) before acting on it.

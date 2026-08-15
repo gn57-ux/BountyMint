@@ -67,6 +67,32 @@ test("a GET /api/jobs/:jobId-style response never leaks salt after generation co
   assert.equal(responseBody.agents[0].source, "cache_fallback");
 });
 
+// AC-002: "揭晓前前端不展示任何作品内容". metadataURI/imageURI point at the real
+// artwork (Feature 4 fills them in right after Pinata upload, well before the
+// on-chain Reveal), so toPublicAgentState must withhold them until status is
+// actually "revealed" — otherwise Commit/Reveal fairness is defeated by the
+// polling API itself.
+test("toPublicAgentState withholds imageURI/metadataURI until status is revealed", () => {
+  const agent: AgentJobState = {
+    agentId: 1,
+    name: "PixelForge",
+    status: "committed",
+    payoutAddress: PAYOUT_ADDRESSES[1],
+    imageHash: `0x${"1".repeat(64)}`,
+    imageURI: "ipfs://real-image-cid",
+    metadataURI: "ipfs://real-metadata-cid",
+    commitHash: `0x${"2".repeat(64)}`,
+  };
+
+  const beforeReveal = toPublicAgentState(agent);
+  assert.equal(beforeReveal.imageURI, undefined);
+  assert.equal(beforeReveal.metadataURI, undefined);
+
+  const afterReveal = toPublicAgentState({ ...agent, status: "revealed" });
+  assert.equal(afterReveal.imageURI, "ipfs://real-image-cid");
+  assert.equal(afterReveal.metadataURI, "ipfs://real-metadata-cid");
+});
+
 test("createJob assigns payoutAddress immediately and updateAgentState never overwrites it", () => {
   const job = createJob("7", [{ agentId: 1, name: "PixelForge", payoutAddress: PAYOUT_ADDRESSES[1] }]);
   assert.equal(job.agents[0].payoutAddress, PAYOUT_ADDRESSES[1]);

@@ -31,6 +31,47 @@ export const bountyMintAbi = [
     ],
   },
   {
+    type: "function",
+    name: "commitWork",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "bountyId", type: "uint256" },
+      { name: "agentId", type: "uint8" },
+      { name: "commitHash", type: "bytes32" },
+      { name: "payoutAddress", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "revealWork",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "bountyId", type: "uint256" },
+      { name: "agentId", type: "uint8" },
+      { name: "imageHash", type: "bytes32" },
+      { name: "metadataURI", type: "string" },
+      { name: "salt", type: "bytes32" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "submissions",
+    stateMutability: "view",
+    inputs: [
+      { name: "", type: "uint256" },
+      { name: "", type: "uint8" },
+    ],
+    outputs: [
+      { name: "commitHash", type: "bytes32" },
+      { name: "imageHash", type: "bytes32" },
+      { name: "metadataURI", type: "string" },
+      { name: "payoutAddress", type: "address" },
+      { name: "revealed", type: "bool" },
+    ],
+  },
+  {
     type: "event",
     name: "BountyCreated",
     inputs: [
@@ -39,6 +80,28 @@ export const bountyMintAbi = [
       { name: "reward", type: "uint256", indexed: false },
       { name: "promptHash", type: "bytes32", indexed: false },
       { name: "deadline", type: "uint64", indexed: false },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "WorkCommitted",
+    inputs: [
+      { name: "bountyId", type: "uint256", indexed: true },
+      { name: "agentId", type: "uint8", indexed: true },
+      { name: "commitHash", type: "bytes32", indexed: false },
+      { name: "payoutAddress", type: "address", indexed: false },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "WorkRevealed",
+    inputs: [
+      { name: "bountyId", type: "uint256", indexed: true },
+      { name: "agentId", type: "uint8", indexed: true },
+      { name: "imageHash", type: "bytes32", indexed: false },
+      { name: "metadataURI", type: "string", indexed: false },
     ],
     anonymous: false,
   },

@@ -1,7 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { zeroAddress, type Hex } from "viem";
 
-import { runOrchestration } from "@/lib/agents/orchestrate";
+import { runFullPipeline } from "@/lib/agents/pipeline";
 import { AGENT_PERSONAS } from "@/lib/agents/personas";
 import { verifyGenerationSignature } from "@/lib/agents/generation-auth";
 import { getPayoutAddress } from "@/lib/agents/payout-addresses";
@@ -11,10 +11,12 @@ import { LICENSE_DECLARATION } from "@/lib/license";
 import { publicClient } from "@/lib/monad-client";
 import { isRequestRateLimited } from "@/lib/rate-limit";
 
-// Covers the 25s global generation deadline (src/lib/agents/orchestrate.ts)
-// plus headroom for cache-fallback reads, so the `after()` background work
-// below isn't cut off mid-generation on platforms that enforce a duration cap.
-export const maxDuration = 30;
+// Covers the full chained pipeline (specs/4.commit-reveal-execution): the 25s
+// generation deadline, two Pinata uploads per agent, three parallel commit
+// txs, then three sequential reveal txs — each awaited to a confirmed
+// receipt — so the `after()` background work below isn't cut off mid-flight
+// on platforms that enforce a duration cap.
+export const maxDuration = 120;
 
 interface GenerateRequestBody {
   brief?: unknown;
@@ -126,7 +128,7 @@ export async function POST(request: Request, context: RouteContext<"/api/bountie
   // (the deploy target is Vercel) keep this invocation alive until generation
   // actually finishes instead of tearing it down right after the response is
   // sent — see maxDuration above and specs/memory/ for the codex-review finding.
-  after(() => runOrchestration(job.jobId, BigInt(id), brief));
+  after(() => runFullPipeline(job.jobId, BigInt(id), brief));
 
   return NextResponse.json({
     jobId: job.jobId,

@@ -28,7 +28,7 @@ type TxState = "idle" | "pending" | "success" | "error";
 export function CreateBountyForm({
   onCreated,
 }: {
-  onCreated?: (result: { bountyId: bigint; txHash: Hash }) => void;
+  onCreated?: (result: { bountyId: bigint; txHash: Hash; brief: string }) => void;
 }) {
   const t = dictionary;
   const { address, isConnected, chainId } = useAccount();
@@ -96,7 +96,13 @@ export function CreateBountyForm({
     resetWrite();
     setTxHash(undefined);
 
-    const promptHash = keccak256(toBytes(brief));
+    // Trimmed once here and reused for the on-chain promptHash, the
+    // Commit/Reveal auth signature, and the generate request body — the
+    // backend also trims defensively, but the frontend must sign the exact
+    // string it trims to, or verification fails with a spurious 403 (codex-review
+    // 2026-08-15 finding 1).
+    const trimmedBrief = brief.trim();
+    const promptHash = keccak256(toBytes(trimmedBrief));
     const deadline = BigInt(Math.floor(Date.now() / 1000) + deadlineHoursValue * 3600);
 
     try {
@@ -132,7 +138,7 @@ export function CreateBountyForm({
           data: log.data,
           topics: log.topics,
         });
-        onCreated?.({ bountyId: decoded.args.bountyId, txHash });
+        onCreated?.({ bountyId: decoded.args.bountyId, txHash, brief: brief.trim() });
         break;
       } catch {
         // Not the BountyCreated log (e.g. an ERC20/transfer log); keep scanning.
