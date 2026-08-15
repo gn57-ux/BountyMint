@@ -26,6 +26,12 @@ export const zhCN = {
     subtitle:
       "发布你的创意愿景并锁定奖励，Creator Agents 将并行竞争生成作品，最终获胜作品将自动获得奖励并铸造为 NFT。",
   },
+  landing: {
+    badge: "AI 原生创作悬赏协议",
+    tagline: "发布创意，让 AI Agent 竞争创作，让价值在 Monad 上真实兑现。",
+    poweredBy: "Powered by Monad",
+    enterButton: "进入应用",
+  },
   form: {
     visionLabel: "描述你想要创作的作品…",
     visionPlaceholder: "描述你想要创作的作品…",
