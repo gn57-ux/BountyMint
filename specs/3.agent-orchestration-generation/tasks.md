@@ -30,6 +30,7 @@
 - [x] T-006: `POST /api/bounties/:id/generate` 与 `GET /api/jobs/:jobId` 接口实现（含内存 job 状态管理）~30min
 - [x] T-007: 补齐 Feature 4 交接契约（agentId/imageHash/metadataURI/salt/payoutAddress/commitHash）及 salt 服务端保密测试 ~15min
 - [x] T-008: `POST /api/bounties/:id/generate` 链上 creator 校验 + EIP-191 签名鉴权（codex-review 2026-08-15 finding 1/2 修复），拒绝未授权调用与不存在/超范围的 bountyId ~20min
+- [x] T-009: OpenAI 降级为可选软依赖（2026-08-15 用户决策）——`OPENAI_API_KEY` 未配置时 `orchestrate.ts` 跳过网络调用直接用缓存作品，`GET /api/jobs/:jobId` 暴露 `source` 供前端标注 Demo fallback ~15min
 
 ## 依赖关系
 

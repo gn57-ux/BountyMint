@@ -38,10 +38,19 @@ export interface JobState {
 
 // The subset of AgentJobState that is safe to hand back over the public
 // GET /api/jobs/:jobId API — explicitly excludes `salt` (see AC-006) and the
-// server-internal `imageBuffer`/`error` fields.
+// server-internal `imageBuffer`/`error` fields. `source` is exposed so the UI
+// can label cache-fallback artwork as a demo fallback without implying the
+// on-chain Commit/Reveal for it is any less real.
 export type PublicAgentState = Pick<
   AgentJobState,
-  "agentId" | "name" | "status" | "payoutAddress" | "imageHash" | "metadataURI" | "commitHash"
+  | "agentId"
+  | "name"
+  | "status"
+  | "payoutAddress"
+  | "source"
+  | "imageHash"
+  | "metadataURI"
+  | "commitHash"
 >;
 
 export function toPublicAgentState(agent: AgentJobState): PublicAgentState {
@@ -50,6 +59,7 @@ export function toPublicAgentState(agent: AgentJobState): PublicAgentState {
     name: agent.name,
     status: agent.status,
     payoutAddress: agent.payoutAddress,
+    source: agent.source,
     imageHash: agent.imageHash,
     metadataURI: agent.metadataURI,
     commitHash: agent.commitHash,

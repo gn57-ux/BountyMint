@@ -43,6 +43,7 @@
 - `Promise.allSettled([genPixelForge(brief), genNeonMuse(brief), genMythicAI(brief)])`，每个子调用内部设超时（建议 15s）+ 失败后一次重试。
 - OpenAI 图片生成封装为独立函数 `generateImage(prompt): Promise<Buffer>`，隔离 provider 细节，便于赛后替换。
 - 全局编排超时（建议 25-30s）到达后，尚未完成的 Agent 直接标记为 `cache_fallback` 并读取预置图片，不再等待其原始请求。
+- OpenAI 为可选软依赖（2026-08-15 用户决策）：`isOpenAIConfigured()`（`src/lib/agents/generate-image.ts`）检查 `OPENAI_API_KEY` 是否存在；`orchestrate.ts` 的 `generateForAgent` 在未配置时**跳过**整个 `generateImage`/`withGlobalDeadline` 调用，直接读取 `readFallbackImage(persona)`——不发起网络请求、不重试、不等待 25s 全局超时。这与"网络失败后走缓存"是两条不同路径：前者是确定性、零延迟的配置开关，后者才是真正的容错重试。
 
 ### 模块 3: Hash 计算与缓存回退
 
@@ -70,7 +71,9 @@ Request:  { "brief": "...", "licenseDeclaration": "Non-exclusive commercial disp
 Response: { "jobId": "job_123", "status": "generating", "agents": ["PixelForge", "NeonMuse", "MythicAI"] }
 
 GET /api/jobs/:jobId
-Response: { "status": "committed", "agents": [{ "id": 1, "name": "PixelForge", "status": "committed", "imageHash": "0x...", "metadataURI": "pending://...", "payoutAddress": "0x...", "commitHash": "0x..." }, ...] }
+Response: { "status": "committed", "agents": [{ "id": 1, "name": "PixelForge", "status": "committed", "source": "cache_fallback", "imageHash": "0x...", "metadataURI": "pending://...", "payoutAddress": "0x...", "commitHash": "0x..." }, ...] }
+  // source: "generated" | "cache_fallback" — frontend uses this to show a "Demo fallback" badge;
+  // does not affect the reality of the on-chain Commit/Reveal, only the artwork's origin.
 ```
 
 ## 数据模型
@@ -86,6 +89,6 @@ Response: { "status": "committed", "agents": [{ "id": 1, "name": "PixelForge", "
 
 | 决策 | 选项 | 理由 |
 | ---- | ---- | ---- |
-| 图片生成服务商 | OpenAI (gpt-image/DALL·E) | 用户已确认；官方 SDK 简单、出图质量稳定、按次计费适合演示规模 |
+| 图片生成服务商 | OpenAI (gpt-image/DALL·E)，2026-08-15 降级为可选软依赖 | 用户已确认技术选型；但演示不应因缺失付费 API Key 而中断，`OPENAI_API_KEY` 未设置时确定性走 `public/assets/fallback/*.png`，链上 Commit/Reveal/Award 仍全程真实执行 |
 | Job 状态存储 | 进程内内存 Map | PRD §15.2 明确不引入数据库，且生成进度属临时状态非业务状态；已知代价：Vercel 多实例下 POST 与轮询 GET 可能落在不同实例导致 404，判定为黑客松演示规模下可接受的风险而非缺陷，细节见 `specs/memory/vercel-serverless-in-memory-job-store-tradeoff.md` |
 | 轮询 vs SSE | 轮询（P0），SSE 留作 P1 | PRD §16 明确轮询是更稳的 P0 实现 |

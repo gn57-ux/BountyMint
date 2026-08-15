@@ -23,8 +23,8 @@
 ## 功能需求
 
 1. [F-001] 定义 PixelForge / NeonMuse / MythicAI 三套固定 persona 与风格 Prompt 模板，用户 Brief 动态注入共享约束（PRD §13.1）。
-2. [F-002] 使用 OpenAI 图片生成 API，对三个 Agent 并发调用（`Promise.allSettled`），每个请求独立超时。
-3. [F-003] 单个 Agent 生成失败时允许一次重试；超过全局演示超时后改用该 Agent 的预置缓存作品。
+2. [F-002] 使用 OpenAI 图片生成 API（可选软依赖，见 F-003 与 2026-08-15 更新）对三个 Agent 并发调用（`Promise.allSettled`），每个请求独立超时。
+3. [F-003] 单个 Agent 生成失败时允许一次重试；超过全局演示超时后改用该 Agent 的预置缓存作品。`OPENAI_API_KEY` 未配置时视为硬性跳过而非"失败"：不发起任何 OpenAI 请求、不重试、不等待全局超时，立即使用缓存作品，避免把"未配置密钥"和"网络失败"混为一谈而白白等待。
 4. [F-004] 为每张图片（真实生成或缓存）计算 `imageHash`、`metadataHash`、随机 `salt`，并推导 `commitHash`（复用 `1.smart-contract-core` 的计算公式）。
 5. [F-005] 提供 `POST /api/bounties/:id/generate` 接收 `brief`、`licenseDeclaration` 与 `signature`，返回 `jobId` 与三 Agent 列表；提供 `GET /api/jobs/:jobId` 返回各 Agent 当前状态。
 6. [F-006] 每个 Agent 的 job 结果必须保留并向 Feature 4 交付 `agentId`、`imageHash`、`metadataURI`（允许待上传占位）、`salt`、`payoutAddress`、`commitHash`；不得以图片 URL 作为唯一输出。
@@ -34,6 +34,7 @@
 
 - 性能: 三个 Agent 并发生成的全局超时需控制在可支撑 60-90 秒演示节奏内（具体超时阈值由 `3.T-002` 实现时设定，建议 20-30 秒后触发缓存回退）。
 - 安全: OpenAI API Key 仅存在于服务端环境变量，不暴露给前端。
+- 可用性: OpenAI 不是本次演示的硬依赖（2026-08-15 用户决策）——未配置 `OPENAI_API_KEY` 时整条 Commit/Reveal/Award 链路必须仍可用真实缓存作品跑通，不得因为没有图片生成服务商密钥而阻塞或降级演示。
 - 兼容性: 图片存储的实际上传由 `4.commit-reveal-execution` 负责，本 feature 只产出图片二进制/URL 与其 Hash。
 
 ## 验收标准
@@ -45,12 +46,13 @@
 - [ ] [AC-005] `GET /api/jobs/:jobId` 能正确反映三个 Agent 各自的实时状态（generating/committed 等，committed 状态由 feature 4 驱动更新）。
 - [ ] [AC-006] 三个 Agent 均产出 Feature 4 所需完整字段，`agentId` 固定为 1/2/3，Hash/salt 为 32 字节值，且任何私密 salt 不会在 Commit 完成前返回给浏览器。
 - [ ] [AC-007] 未提供签名、签名与链上 `creator` 不匹配、或 `bountyId` 在链上不存在时，`POST /api/bounties/:id/generate` 一律拒绝（400/403/404）且不创建 job、不触发 OpenAI 调用。
+- [ ] [AC-008] `OPENAI_API_KEY` 未设置时，三个 Agent 均直接使用 `public/assets/fallback/*.png`（`source: "cache_fallback"`），且各自的 `imageHash`/`metadataHash`/`salt`/`commitHash` 仍按真实公式计算（非占位值），`GET /api/jobs/:jobId` 暴露 `source` 供前端标注"Demo fallback"。
 
 ## 依赖
 
 - `1.smart-contract-core`（commitHash 计算公式一致性）
-- OpenAI 图片生成 API（gpt-image / DALL·E，已确认）
+- OpenAI 图片生成 API（gpt-image / DALL·E，已确认，但为可选软依赖，见 F-003/AC-008）
 
 ## 开放问题
 
-- 无（OpenAI 已确认为图片生成服务商）
+- 无（OpenAI 已确认为图片生成服务商；2026-08-15 明确其为可选项，未配置时走确定性缓存路径，不影响 Commit/Reveal/Award 的真实链上闭环）

@@ -36,3 +36,9 @@
 - 两个 finding 用同一处改动收敛：新增 `src/lib/monad-client.ts`（服务端只读 viem `publicClient`）+ `src/lib/agents/generation-auth.ts`（纯函数 `verifyGenerationSignature`，不依赖网络，用 `recoverMessageAddress` 而不是需要 RPC 的 `publicClient.verifyMessage`，因为项目里所有钱包都是标准 EOA，不需要 ERC-1271 合约钱包支持，纯函数还顺带让签名校验逻辑不需要 mock RPC 就能单元测试）。路由处理器里先 `publicClient.readContract` 读 `bounties(bountyId)`：读取失败（超出 `uint256` 编码范围）或 `creator` 为零地址（未铸造）→ 404，一并解决 P2；再校验 `signature` 恢复地址等于链上 `creator` → 不匹配 403，解决 P1。
 - 签名消息 `buildGenerationAuthMessage(bountyId, brief)` 把 `keccak256(brief)` 绑进要签名的文本里，不只签 bountyId——否则拿到一次合法签名就能重放着换成任意 brief 再次调用，等于没做鉴权。这个绑定思路后续任何"链下签名换取链上身份代表权"的场景（比如 Feature 5 的获胜者确认、Feature 6 的退款触发）都应该照抄：签名消息必须绑定这次操作的实际内容，不能只绑定一个可复用的 ID。
 - 这次改动之前，`POST /api/bounties/:id/generate` 在整个仓库里还没有任何前端调用方（Feature 4 的"创作竞技场"页面才会加第一个调用方）。也就是说鉴权设计（签名什么消息、用什么钱包签）是在没有真实 UI 联调的情况下先在后端定的，Feature 4 实现"触发生成"按钮时要严格照抄 `buildGenerationAuthMessage` 的消息格式用 wagmi 的 `signMessageAsync` 签名，不能自己另起一套消息文案，否则后端验证一定失败。
+
+## 2026-08-15 — 用户决策：OpenAI 降级为可选软依赖
+
+- 沙箱环境里从始至终没有配置过 `OPENAI_API_KEY`（`.env` 文件都不存在），用户在 Feature 4 启动阶段明确要求不要把它当硬依赖：未配置时 `orchestrate.ts` 必须"立即走缓存,不等待超时,也不得阻塞流程"，而不是依赖 OpenAI SDK 鉴权失败后走已有的重试+缓存兜底路径（那条路径此前也能在约 1 秒内收敛，但属于"网络失败被动兜底"，不是"配置缺失主动跳过"，语义和可读性都不一样）。改法：新增 `isOpenAIConfigured()`（检查 `process.env.OPENAI_API_KEY` 是否非空），`generateForAgent` 在未配置时直接跳过 `generateImage`/`withGlobalDeadline`，不发起任何网络调用。
+- 三张缓存作品在这条路径下依然要计算真实 `imageHash`/`salt`/`metadataURI`/`commitHash`（不是占位值），因为 Feature 4 要把这些作品真实上传 Pinata、真实提交 Commit/Reveal 到 Monad——"图片是不是 AI 现生成的"和"链上数据是不是真的"是两件完全独立的事，前者可以是演示兜底，后者任何时候都不能是 Mock。这也是为什么 `toPublicAgentState` 新增暴露 `source: "generated" | "cache_fallback"` 字段而不是隐藏它：UI 应该诚实标注"这是 Demo Fallback 作品"，而不是假装是实时生成的，同时不影响评委验证链上交易的真实性。
+- 任何后续 feature 如果也要接类似"可选外部服务，缺省时走确定性兜底"的模式（比如 Pinata 密钥缺失、Monad RPC 不可用），都应该复用这个"显式配置检查函数 + 在编排逻辑最前面短路跳过"的形状，而不是依赖底层 SDK/fetch 调用失败后被动兜底——这样行为是文档化、可测试、可解释的，而不是偶然跑对。

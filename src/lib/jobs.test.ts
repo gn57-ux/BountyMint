@@ -62,6 +62,9 @@ test("a GET /api/jobs/:jobId-style response never leaks salt after generation co
 
   const responseBody = { status: stored.status, agents: stored.agents.map(toPublicAgentState) };
   assert.equal(JSON.stringify(responseBody).includes(secretSalt.slice(2)), false);
+  // source is intentionally public — the UI badges cache-fallback artwork as
+  // a demo fallback without hiding that its on-chain Commit/Reveal is real.
+  assert.equal(responseBody.agents[0].source, "cache_fallback");
 });
 
 test("createJob assigns payoutAddress immediately and updateAgentState never overwrites it", () => {
