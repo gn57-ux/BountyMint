@@ -16,17 +16,27 @@
 
 ### 功能 1: 动效
 
-- [ ] T-001: Reveal 翻转/资金流/NFT 铸造动效 + `prefers-reduced-motion` 支持 ~30min
+- [ ] T-001: Reveal 翻转/资金流/NFT 铸造动效 + `prefers-reduced-motion` 支持 ~30min — **2026-08-15 用户明确砍掉**（P0 冲刺范围：不做复杂动画），保持现有无动画的即时状态切换
 
 ### 功能 2: 部署
 
-- [ ] T-002: Vercel 部署配置 + 环境变量清单 + Monad Testnet(10143) 参数接入并部署/验证合约 ~20min
+- [ ] T-002: Vercel 部署配置 + 环境变量清单 + Monad Testnet(10143) 参数接入并部署/验证合约 ~20min — **未完成，阻塞中**，见下方说明
+- 根/`contracts/.env.example` 已写入真实 Monad Testnet 参数（RPC 已验证可达，chain id `10143`）
+- 合约部署脚本（`contracts/script/Deploy.s.sol`）已就绪，等待用户提供已充值的 `DEPLOYER_PRIVATE_KEY`
+- Vercel 部署由用户自行在网站上 Import 仓库完成（2026-08-15 用户决定）
 
 ### 功能 3: 适配与材料
 
-- [ ] T-003: 桌面 Chrome 无痕窗口与演示分辨率检查（连接弹窗/表单/三卡片/结果页）~10min
-- [ ] T-004: README（合约地址/公网 URL/运行说明）+ 项目截图 + 演示脚本材料整理 ~30min
-- [ ] T-005: Monad 原生演示验收（锁资→3 Commit→3 Reveal→Award 支付+NFT）+ Explorer 证据清单 ~20min
+- [ ] T-003: 桌面 Chrome 无痕窗口与演示分辨率检查（连接弹窗/表单/三卡片/结果页）~10min — 需真实部署环境，待 T-002 解除阻塞
+- [ ] T-004: README（合约地址/公网 URL/运行说明）+ 项目截图 + 演示脚本材料整理 ~30min — **未完成**，仅以下子项已完成，其余仍待 T-002 部署产出：
+  - [x] README 骨架（技术架构/本地运行/环境变量说明/核心流程/演示脚本文案）已写入 `README.md`
+  - [ ] 合约地址、公网 Demo URL、真实创建悬赏与 Award 交易链接（待 T-002 部署完成后回填）
+  - [ ] 项目截图（4 个核心状态）（待真实部署环境可用后补充）
+- [ ] T-005: Monad 原生演示验收（锁资→3 Commit→3 Reveal→Award 支付+NFT）+ Explorer 证据清单 ~20min — 待 T-002 解除阻塞
+
+## 阻塞说明（2026-08-15）
+
+真实部署需要：(1) 已充值 Monad Testnet MON 的部署者私钥、(2) 真实 Pinata JWT、(3) 真实 WalletConnect Project ID、(4) 新建公开 GitHub 仓库并推送、(5) Vercel 项目导入与环境变量配置。经与用户确认：私钥/JWT 由用户自行在本地设置并充值后告知；GitHub 仓库创建与推送由用户自行处理；Vercel 部署由用户自行在网站上完成。Claude 侧已就绪：真实 Monad RPC 已验证可达、部署脚本已确认无需改动、`.env.example` 已更新为真实网络参数、README 已备好待填字段。
 
 ## 依赖关系
 
