@@ -62,6 +62,7 @@ export const zhCN = {
     title: "创作竞技场",
     signPrompt: "请在钱包中签名以授权生成",
     signRejected: "已取消签名，无法开始生成",
+    startingBody: "正在生成作品、上传 IPFS 并提交链上 Commit/Reveal，请稍候（约需 15-30 秒）…",
     startError: "生成请求失败：{error}",
     agentGenerating: "创作中…",
     agentPreparing: "准备提交链上承诺…",

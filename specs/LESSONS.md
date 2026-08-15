@@ -50,3 +50,9 @@
 - 排查方法本身值得复用：零成本诊断优先于改代码或再广播——(1) `cast code <payoutAddress>` 检查是否为 EIP-7702 委托（`0xef0100` 前缀）、(2) `cast run <失败交易 hash>` 跑 trace 定位失败发生在 `payoutAddress.call` 还是 `_safeMint`/`onERC721Received`、(3) 确认根因后才动手改配置。修复不改合约、不改 App 代码，只需要三个"从未使用过、`eth_getCode == 0x`"的全新 EOA 作为 `AGENT_PAYOUT_ADDRESS_*`（用 `cast wallet new` 生成）。换用干净地址后，同一份代码、同一个合约，`awardWinner` 一次成功：真实支付到账（payout 地址余额精确等于 `bounty.reward`）、真实铸造 NFT（`ownerOf(tokenId)` 等于发布者）。
 - **本次这三个新地址的私钥当场丢弃不落盘是正确的，但仅因为这是一次性 smoke test、本人不在乎那笔测试奖励——这个"丢私钥"的做法本身不能当作通用操作建议复用。** `payoutAddress` 是奖金实际到账的地址（NFT 才是铸给发布者，两者是分开的收款人），丢弃私钥等于让任何成功结算的悬赏奖金永久锁死、任何人都取不出来。真实比赛/演示场景下，`AGENT_PAYOUT_ADDRESS_*` 必须使用生成后**妥善保存私钥**的全新地址，或者直接用项目已经控制、能实际支配资金的钱包地址——不能沿用本条目"丢弃私钥"这一步。
 - 后续任何 feature/环境如果还想用"众所周知的测试地址"做占位符，只能在纯本地链（Anvil/Hardhat 起的私有链）上这样做；只要涉及任何公开网络（哪怕是 Testnet），必须用全新生成、私钥妥善保存的地址，代码里已加对应警告注释（`src/lib/agents/payout-addresses.ts`、`.env.example`）。
+
+## 2026-08-15 — 线上实锤：Vercel 跨实例内存 job store 真的丢了状态
+
+- `specs/memory/vercel-serverless-in-memory-job-store-tradeoff.md` 早先把"POST 和轮询 GET 落在不同 Vercel 实例上"标记为"演示规模下概率极低、可接受的风险"——今天在真实部署上复现了：钱包签名后三张卡片永久停在"创作中"，从不揭晓，因为 `POST /api/bounties/:id/generate` 用 `after()` 把 `runFullPipeline` 扔进后台后立刻返回，前端转去轮询 `GET /api/jobs/:jobId`，而那个后台任务大概率在跟 POST 不同的实例上跑，两边的进程内 `Map` 从来没共享过。风险评估错了——不是"极低概率"，是"只要 Vercel 分配了第二个实例就必然发生"。
+- 修复：不再用 `after()` + 轮询这套异步模型，改成 `POST /api/bounties/:id/generate` 直接 `await runFullPipeline(...)`，整条链路（生成→Pinata 上传→3 笔 commit→3 笔 reveal）在同一次请求里跑完再一次性把最终的 `agents`（含 `imageURI`/`metadataURI`，`toPublicAgentState` 的 Reveal 后才暴露的 gate 逻辑不变）返回给前端；前端 `CreatorArena` 不再维护 `jobId`/轮询 `useEffect`，拿到 POST 响应直接判断是否 `status === "revealed"` 且全部 agent 已揭晓，是则直接调用现有 `onRevealed` 进入 `WinnerSelection`。真实链路约 12-16 秒，远低于 `maxDuration = 120`，同步返回比"异步 + 跨实例共享状态"简单且真的可靠。
+- 教训：涉及 Serverless 多实例的风险评估，仅凭"演示规模并发低"来判断概率是不够的——只要平台会在任意两次请求之间切换实例（哪怕只有一次），依赖进程内共享状态的设计就必然会在某次真实使用中触发，应该按"确定会发生"而不是"极小概率"来处理，能同步就同步，不要等流量证明它是必然的。

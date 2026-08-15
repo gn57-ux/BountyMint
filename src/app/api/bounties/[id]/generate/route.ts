@@ -1,4 +1,4 @@
-import { after, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { zeroAddress, type Hex } from "viem";
 
 import { runFullPipeline } from "@/lib/agents/pipeline";
@@ -6,16 +6,22 @@ import { AGENT_PERSONAS } from "@/lib/agents/personas";
 import { verifyGenerationSignature } from "@/lib/agents/generation-auth";
 import { getPayoutAddress } from "@/lib/agents/payout-addresses";
 import { bountyMintAbi, bountyMintAddress } from "@/lib/contracts/bounty-mint";
-import { createJob, findActiveJobByBountyId } from "@/lib/jobs";
+import { createJob, findActiveJobByBountyId, getJob, toPublicAgentState } from "@/lib/jobs";
 import { LICENSE_DECLARATION } from "@/lib/license";
 import { publicClient } from "@/lib/monad-client";
 import { isRequestRateLimited } from "@/lib/rate-limit";
 
 // Covers the full chained pipeline (specs/4.commit-reveal-execution): the 25s
-// generation deadline, two Pinata uploads per agent, three parallel commit
+// generation deadline, two Pinata uploads per agent, three sequential commit
 // txs, then three sequential reveal txs — each awaited to a confirmed
-// receipt — so the `after()` background work below isn't cut off mid-flight
-// on platforms that enforce a duration cap.
+// receipt. This request now awaits that pipeline directly instead of
+// registering it as after() background work: on Vercel, a background
+// invocation and a later poll from a different serverless instance don't
+// share the in-memory job store, so GET /api/jobs/:jobId could 404 or never
+// observe completion — confirmed live on the deployed demo (2026-08-15,
+// see specs/LESSONS.md). The full pipeline finishes in well under a minute
+// in practice, so awaiting it in-request and returning the final result
+// directly is simpler and actually reliable across instances.
 export const maxDuration = 120;
 
 interface GenerateRequestBody {
@@ -104,13 +110,16 @@ export async function POST(request: Request, context: RouteContext<"/api/bountie
     );
   }
 
+  // A genuinely concurrent duplicate request (same bounty, still in flight on
+  // this same instance) is now a real error rather than something to hand
+  // back a jobId for — this request always returns the final result itself,
+  // so there is no cross-request polling contract to join anymore.
   const activeJob = findActiveJobByBountyId(id);
   if (activeJob) {
-    return NextResponse.json({
-      jobId: activeJob.jobId,
-      status: activeJob.status,
-      agents: AGENT_PERSONAS.map((persona) => persona.name),
-    });
+    return NextResponse.json(
+      { error: "A generation job for this bounty is already in progress" },
+      { status: 409 },
+    );
   }
 
   const job = createJob(
@@ -122,17 +131,19 @@ export async function POST(request: Request, context: RouteContext<"/api/bountie
     })),
   );
 
-  // The client polls GET /api/jobs/:jobId for progress instead of waiting on
-  // this request (specs/3.agent-orchestration-generation/design.md). Registered
-  // via `after()` rather than a bare unawaited call so serverless platforms
-  // (the deploy target is Vercel) keep this invocation alive until generation
-  // actually finishes instead of tearing it down right after the response is
-  // sent — see maxDuration above and specs/memory/ for the codex-review finding.
-  after(() => runFullPipeline(job.jobId, BigInt(id), brief));
+  try {
+    await runFullPipeline(job.jobId, BigInt(id), brief);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "generation pipeline failed" },
+      { status: 500 },
+    );
+  }
 
+  const finished = getJob(job.jobId) ?? job;
   return NextResponse.json({
-    jobId: job.jobId,
-    status: job.status,
-    agents: AGENT_PERSONAS.map((persona) => persona.name),
+    jobId: finished.jobId,
+    status: finished.status,
+    agents: finished.agents.map(toPublicAgentState),
   });
 }

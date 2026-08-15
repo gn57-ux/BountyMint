@@ -102,13 +102,18 @@ export function toPublicAgentState(agent: AgentJobState): PublicAgentState {
 // business state (bounty/Commit/Reveal/winner) from on-chain reads, so losing
 // this map is expected and does not corrupt anything on-chain.
 //
-// Known limitation on the Vercel deploy target: if a POST and a later GET land
-// on different warm serverless instances, this Map won't have the jobId and
-// GET /api/jobs/:jobId returns 404 even though generation is proceeding fine
-// server-side. Fixing this properly means external shared storage, which PRD
-// §15.2 explicitly rules out for business state — and job progress isn't
-// business state, so we accept the risk here rather than add a database for a
-// hackathon demo. See specs/memory/vercel-serverless-in-memory-job-store-tradeoff.md.
+// Known limitation on the Vercel deploy target: if two requests (e.g. a
+// POST and a GET) land on different warm serverless instances, this Map
+// won't have the jobId on the second one. This was previously a "low
+// probability" risk POST /api/bounties/:id/generate + GET /api/jobs/:jobId
+// polling accepted (PRD §15.2 rules out a database for business state, and
+// job progress isn't business state) — until it reproduced live and broke
+// the demo (2026-08-15, see specs/LESSONS.md). generate/route.ts now awaits
+// the full pipeline in-request and returns the final result directly
+// instead of relying on a later poll to observe completion, so the primary
+// flow no longer depends on this Map being shared across instances. GET
+// /api/jobs/:jobId still has the same limitation if anything calls it.
+// See specs/memory/vercel-serverless-in-memory-job-store-tradeoff.md.
 const jobs = new Map<string, JobState>();
 
 export function createJob(

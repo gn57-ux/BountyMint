@@ -11,9 +11,7 @@ import { dictionary } from "@/lib/i18n";
 import { LICENSE_DECLARATION } from "@/lib/license";
 import { monadChain } from "@/lib/monad-chain";
 
-const POLL_INTERVAL_MS = 2000;
-
-type ArenaState = "signing" | "starting" | "polling" | "done" | "error";
+type ArenaState = "signing" | "starting" | "done" | "error";
 
 function agentStatusLabel(t: typeof dictionary, agent: PublicAgentState): string {
   switch (agent.status) {
@@ -131,7 +129,6 @@ export function CreatorArena({
 
   const [state, setState] = useState<ArenaState>("signing");
   const [error, setError] = useState<string>();
-  const [jobId, setJobId] = useState<string>();
   const [agents, setAgents] = useState<PublicAgentState[]>(
     AGENT_PERSONAS.map((persona) => ({
       agentId: persona.id,
@@ -143,6 +140,15 @@ export function CreatorArena({
 
   const startedRef = useRef(false);
 
+  // POST /api/bounties/:id/generate now awaits the full pipeline (generation,
+  // Pinata upload, 3 commits, 3 reveals — well under a minute in practice)
+  // and returns the final agent states directly, instead of returning a
+  // jobId to poll GET /api/jobs/:jobId afterward. On Vercel, that poll could
+  // land on a different serverless instance than the one running the
+  // background job, whose in-memory store never had it — confirmed live on
+  // the deployed demo (2026-08-15, see specs/LESSONS.md) as three cards
+  // stuck on "generating" forever. Awaiting the single request sidesteps the
+  // cross-instance dependency entirely.
   async function attemptGeneration() {
     setState("signing");
     setError(undefined);
@@ -165,12 +171,32 @@ export function CreatorArena({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ brief, licenseDeclaration: LICENSE_DECLARATION, signature }),
       });
-      const body = (await response.json()) as { jobId?: string; error?: string };
-      if (!response.ok || !body.jobId) {
+      const body = (await response.json()) as {
+        status?: string;
+        agents?: PublicAgentState[];
+        error?: string;
+      };
+      if (!response.ok) {
         throw new Error(body.error || `HTTP ${response.status}`);
       }
-      setJobId(body.jobId);
-      setState("polling");
+      if (!Array.isArray(body.agents)) {
+        throw new Error("Unexpected response from server");
+      }
+
+      setAgents(body.agents);
+      setState("done");
+
+      // job.status "revealed" only means every agent *settled* (revealed or
+      // permanently failed) — the contract itself only reaches its Revealed
+      // status once all three actually revealed (bounty.revealCount ==
+      // AGENT_COUNT). If one agent's reveal failed, the job still resolves
+      // to "revealed" here (so it isn't stuck as permanently active), but
+      // awardWinner would revert for every agent — so only hand off to
+      // winner selection when every agent is individually "revealed".
+      const allRevealed = body.agents.every((a) => a.status === "revealed");
+      if (body.status === "revealed" && allRevealed) {
+        onRevealed?.(body.agents);
+      }
     } catch (err) {
       setState("error");
       setError(t.arena.startError.replace("{error}", err instanceof Error ? err.message : "unknown"));
@@ -184,49 +210,15 @@ export function CreatorArena({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
-  useEffect(() => {
-    if (!jobId || state !== "polling") return;
-
-    let cancelled = false;
-    async function poll() {
-      try {
-        const response = await fetch(`/api/jobs/${jobId}`);
-        const body = (await response.json()) as { status?: string; agents?: PublicAgentState[] };
-        if (cancelled || !body.agents) return;
-        setAgents(body.agents);
-        // job.status "revealed" only means every agent *settled* (revealed or
-        // permanently failed) — the contract itself only reaches its Revealed
-        // status once all three actually revealed (bounty.revealCount ==
-        // AGENT_COUNT). If one agent's reveal failed, the job still resolves
-        // to "revealed" here (so it isn't stuck as permanently active), but
-        // awardWinner would revert for every agent — so only hand off to
-        // winner selection when every agent is individually "revealed".
-        const allRevealed = body.agents.every((a) => a.status === "revealed");
-        if (body.status === "revealed" && allRevealed) {
-          setState("done");
-          onRevealed?.(body.agents);
-        } else if (body.status === "revealed" || body.status === "failed") {
-          setState("done");
-        }
-      } catch {
-        // Transient poll failure — the next interval tick retries.
-      }
-    }
-
-    const interval = setInterval(poll, POLL_INTERVAL_MS);
-    void poll();
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [jobId, state, onRevealed]);
-
   return (
     <section className="w-full">
       <h2 className="mb-4 font-subheading text-subheading text-primary">{t.arena.title}</h2>
 
-      {state === "signing" || state === "starting" ? (
+      {state === "signing" ? (
         <p className="text-body-sm text-on-surface-variant">{t.arena.signPrompt}</p>
+      ) : null}
+      {state === "starting" ? (
+        <p className="text-body-sm text-on-surface-variant">{t.arena.startingBody}</p>
       ) : null}
       {state === "error" && error ? (
         <div className="mb-4 flex items-center gap-3">
