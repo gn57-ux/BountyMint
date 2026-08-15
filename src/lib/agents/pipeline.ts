@@ -34,7 +34,15 @@ async function uploadAndFinalizeCommitHash(bountyId: bigint, promptHash: Hex, jo
   if (!agent.imageBuffer || !agent.imageHash || !agent.salt) return;
   try {
     const persona = getPersona(agent.agentId);
-    const imageURI = await pinImageToIPFS(agent.imageBuffer, `bounty-${bountyId}-${persona.slug}.png`);
+    // The deterministic demo artwork already ships with the web app. Keep the
+    // demo path independent from third-party storage availability so a Pinata
+    // outage or credential issue cannot block the real Monad Commit/Reveal
+    // walkthrough. Live model outputs still use Pinata below.
+    const appUrl = APP_URL.replace(/\/$/, "");
+    const imageURI =
+      agent.source === "cache_fallback"
+        ? `${appUrl}/assets/fallback/${persona.slug}.png`
+        : await pinImageToIPFS(agent.imageBuffer, `bounty-${bountyId}-${persona.slug}.png`);
     const metadata = buildMetadata({
       bountyId: bountyId.toString(),
       persona,
@@ -44,7 +52,10 @@ async function uploadAndFinalizeCommitHash(bountyId: bigint, promptHash: Hex, jo
       licenseDeclaration: LICENSE_DECLARATION,
       appUrl: APP_URL,
     });
-    const metadataURI = await pinJsonToIPFS(metadata, `bounty-${bountyId}-${persona.slug}-metadata.json`);
+    const metadataURI =
+      agent.source === "cache_fallback"
+        ? `data:application/json;base64,${Buffer.from(JSON.stringify(metadata)).toString("base64")}`
+        : await pinJsonToIPFS(metadata, `bounty-${bountyId}-${persona.slug}-metadata.json`);
     const commitHash = computeCommitHash({
       bountyId,
       agentId: agent.agentId,
