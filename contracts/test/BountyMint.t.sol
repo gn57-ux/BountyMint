@@ -208,6 +208,41 @@ contract BountyMintTest is Test {
         vm.stopPrank();
     }
 
+    function test_revealWork_revertsForNonExecutor() public {
+        uint256 bountyId = _createBounty();
+        bytes32 imageHash = keccak256("img");
+        string memory uri = "ipfs://meta";
+        bytes32 salt = keccak256("salt");
+
+        vm.startPrank(executor);
+        bounty.commitWork(bountyId, 1, _commitHash(bountyId, 1, imageHash, uri, salt), agent1Payout);
+        bounty.commitWork(bountyId, 2, _commitHash(bountyId, 2, imageHash, uri, salt), agent2Payout);
+        bounty.commitWork(bountyId, 3, _commitHash(bountyId, 3, imageHash, uri, salt), agent3Payout);
+        vm.stopPrank();
+
+        vm.prank(creator);
+        vm.expectRevert(bytes("BountyMint: not executor"));
+        bounty.revealWork(bountyId, 1, imageHash, uri, salt);
+    }
+
+    function test_revealWork_revertsOnDuplicateReveal() public {
+        uint256 bountyId = _createBounty();
+        bytes32 imageHash = keccak256("img");
+        string memory uri = "ipfs://meta";
+        bytes32 salt = keccak256("salt");
+
+        vm.startPrank(executor);
+        bounty.commitWork(bountyId, 1, _commitHash(bountyId, 1, imageHash, uri, salt), agent1Payout);
+        bounty.commitWork(bountyId, 2, _commitHash(bountyId, 2, imageHash, uri, salt), agent2Payout);
+        bounty.commitWork(bountyId, 3, _commitHash(bountyId, 3, imageHash, uri, salt), agent3Payout);
+
+        bounty.revealWork(bountyId, 1, imageHash, uri, salt);
+
+        vm.expectRevert(bytes("BountyMint: already revealed"));
+        bounty.revealWork(bountyId, 1, imageHash, uri, salt);
+        vm.stopPrank();
+    }
+
     function test_revealWork_revertsOnMismatchedSalt() public {
         uint256 bountyId = _createBounty();
         bytes32 imageHash = keccak256("img");
