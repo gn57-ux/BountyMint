@@ -1,3 +1,6 @@
 - [git submodule add 后手动 checkout 会被嵌套 submodule update 重置](git-submodule-nested-checkout-reset.md) — 迁移 vendor 依赖为真实 submodule 时的正确顺序 | tags: git,submodule,foundry
 - [悬赏类合约的 deadline 必须在提交类接口中校验](contract-submission-deadline-enforcement.md) — 不能只在退款接口里检查过期，Commit/Reveal 也要拒绝过期提交 | tags: solidity,security,deadline
 - [RainbowKit + Turbopack 构建失败——不选 Coinbase 钱包也会被拖入 cdp-sdk](rainbowkit-turbopack-base-account-bundle-break.md) — alias `@base-org/account` 到 stub 一次性解决 `@x402/*` 级联报错 | tags: rainbowkit,wagmi,turbopack,nextjs
+- [用 cast 交叉验证 TS 侧 hash 计算与合约公式一致](verify-ts-hash-against-solidity-with-cast.md) — `cast abi-encode`+`cast keccak` 独立复算，逐字节比对而不是等联调报错 | tags: viem,keccak256,foundry,cast
+- [Node 原生 test runner 跑 TS 测试的三个坑](node-test-runner-ts-gotchas.md) — 相对导入要带 `.ts`、tsconfig 要开 `allowImportingTsExtensions`、CLI 要传 glob 不能传目录 | tags: node,testing,typescript
+- [进程内 job store 跨 Vercel 实例不共享——已知且接受的取舍](vercel-serverless-in-memory-job-store-tradeoff.md) — PRD §15.2 生成进度非业务状态，不为此引入数据库 | tags: vercel,serverless,tradeoff

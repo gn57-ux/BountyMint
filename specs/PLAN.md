@@ -12,6 +12,13 @@
 | 6 | reliability-and-recovery | 链上时间线、刷新状态恢复、错误降级 UI、退款流程 | 2, 4, 5 | 待开发 |
 | 7 | deploy-and-demo-readiness | 动效收尾、Vercel 部署、移动端适配、README 与演示材料 | 1, 2, 3, 4, 5, 6 | 待开发 |
 
+## Monad 原生验收门槛
+
+- Feature 3 的 Agent 结果必须完整交付 `agentId/imageHash/metadataURI/salt/payoutAddress/commitHash`，为 Feature 4 提供确定接口。
+- Feature 4–6 的交易状态、Hash、余额变化、NFT 所有权均以真实 Monad RPC/合约读取为准，禁止 Mock 链上成功。
+- Feature 7 必须在 Monad Testnet（Chain ID `10143`）完成真实部署与端到端交易，并在 README/页面展示合约地址和 Explorer 证据。
+- 任何 Feature 若只能展示 AI 生成而无法继续链上闭环，不得判定完整 Demo Ready。
+
 **推荐执行顺序**：1 → 2 → 3 → 4 → 5 → 6 → 7（2 与 3 在各自依赖 1 完成后可并行开发）
 
 ## 第三方选型确认（2026-08-14 用户确认）
@@ -19,7 +26,7 @@
 - 图片生成 API：OpenAI（gpt-image / DALL·E）
 - 存储方案：Pinata（IPFS pinning）
 - 钱包连接库：RainbowKit + wagmi
-- Monad 网络参数（RPC URL / Chain ID / 浏览器域名）：暂用占位配置，比赛当天替换为官方指定网络参数（对应任务见 `7.T-002`）
+- Monad Testnet：Chain ID `10143`；RPC `https://testnet-rpc.monad.xyz/`；浏览器 `https://testnet.monadexplorer.com/`（部署与最终可用性仍在 `7.T-002` 验证）
 
 ## ID 编号约定
 

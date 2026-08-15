@@ -1,3 +1,5 @@
+import { LICENSE_DECLARATION } from "@/lib/license";
+
 export const zhCN = {
   meta: {
     title: "BountyMint — 发布灵感悬赏",
@@ -30,7 +32,7 @@ export const zhCN = {
     rewardLabel: "悬赏奖金 (MON)",
     deadlineLabel: "截止时间（小时后）",
     licenseLabel: "授权声明",
-    licenseStatement: "获胜作品允许悬赏发布者用于非独占商业展示。",
+    licenseStatement: LICENSE_DECLARATION,
     walletBalance: "钱包余额:",
     submit: "发布悬赏",
     submitPending: "交易确认中…",

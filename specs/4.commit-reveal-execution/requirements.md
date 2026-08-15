@@ -27,6 +27,7 @@
 3. [F-003] 全部 Commit 完成后，executor 依次调用 `revealWork`，校验 salt/metadata 与原 Commit 一致。
 4. [F-004] 前端创作竞技场展示三张 Agent 卡片，状态包含 `Ideating / Generating / Committed / Revealed`；Commit 完成后作品保持模糊并显示锁定图标，Reveal 时三张作品同时翻转。
 5. [F-005] 前端通过轮询 `GET /api/jobs/:jobId` 驱动状态更新，无需手动刷新页面。
+6. [F-006] Commit/Reveal 必须提交到真实 Monad 合约；每个 Agent 保存真实 `commitTxHash`/`revealTxHash`、确认状态和区块浏览器 URL，禁止用 Mock Hash 或定时器模拟成功。
 
 ## 非功能需求
 
@@ -42,6 +43,7 @@
 - [ ] [AC-004] 前端 Agent 卡片状态与链上/后端实际状态一致，不出现状态倒退或卡死。
 - [ ] [AC-005] Reveal 完成时三张作品在前端同时翻转展示，不逐个出现。
 - [ ] [AC-006] 单个 Agent Commit 失败时，仅重试该 Agent，不影响已成功的其他两个。
+- [ ] [AC-007] 页面可展开查看六笔真实 Monad Commit/Reveal 交易，链接均指向当前交易 Hash，且链上 `commitCount/revealCount` 最终均为 3。
 
 ## 依赖
 

@@ -55,7 +55,9 @@
 
 ## 数据模型
 
-延用 `3.agent-orchestration-generation` 的内存 job 状态，新增字段：`agents[].commitTxHash`、`agents[].revealTxHash`、`agents[].metadataURI`（最终 IPFS URI）。
+延用 `3.agent-orchestration-generation` 的内存 job 状态，新增字段：`agents[].commitTxHash`、`agents[].commitReceiptStatus`、`agents[].revealTxHash`、`agents[].revealReceiptStatus`、`agents[].metadataURI`（最终 IPFS URI）。状态只能由 Monad RPC receipt 与合约读取推进，前端计时器仅负责轮询，不得自行把状态置为成功。
+
+前端在每张卡片下提供可折叠的链上证明区：展示缩略交易 Hash、Pending/Confirmed/Failed、当前网络 `Monad Testnet` 与 Explorer 链接。演示主画面保持简洁，但评委无需打开开发者工具即可验证交易。
 
 ## 安全考虑
 

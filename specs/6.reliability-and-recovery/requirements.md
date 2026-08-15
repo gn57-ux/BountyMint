@@ -27,6 +27,7 @@
 2. [F-002] 页面刷新后，从合约状态（`Bounty`/`Submission`）与后端 job 状态重新读取并恢复 UI，无需用户重新操作。
 3. [F-003] 实现 PRD §17 错误与降级处理表中的全部前端场景：未连接钱包、网络错误、余额不足、用户拒绝交易、RPC 暂时失败、图片生成失败、图片存储失败、Commit 部分失败、Reveal 不匹配、支付失败、页面刷新。
 4. [F-004] 提供退款入口：截止时间后且未 Awarded 的悬赏，发布者可调用 `refundExpiredBounty`。
+5. [F-005] UI 明确区分链下 AI job 状态与链上协议状态；所有链上完成节点只能由 Monad RPC、receipt 或合约读取驱动，不得由 localStorage/Mock 数据宣告成功。
 
 ## 非功能需求
 
@@ -41,6 +42,7 @@
 - [ ] [AC-003] PRD §17 表中列出的每种错误场景都有对应 UI 提示且不导致页面白屏或卡死。
 - [ ] [AC-004] 截止时间前退款按钮不可用或调用后合约 revert；截止后且未 Awarded 时退款成功，发布者收到退款。
 - [ ] [AC-005] 已 Awarded 的悬赏不显示退款入口。
+- [ ] [AC-006] 清空 localStorage 并刷新后，创建/Commit/Reveal/Award/NFT 等关键状态仍能由 bountyId 和 Monad 合约恢复，证明应用不是纯前端演示。
 
 ## 依赖
 

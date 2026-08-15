@@ -16,18 +16,20 @@
 
 ### 功能 1: Prompt 与生成封装
 
-- [ ] T-001: 三套 Agent persona Prompt 模板 + 共享约束拼接函数 ~15min
-- [ ] T-002: OpenAI 图片生成调用封装（单请求超时 + 失败重试一次）~30min
+- [x] T-001: 三套 Agent persona Prompt 模板 + 共享约束拼接函数 ~15min
+- [x] T-002: OpenAI 图片生成调用封装（单请求超时 + 失败重试一次）~30min
 
 ### 功能 2: 并发编排与 Hash
 
-- [ ] T-003: `Promise.allSettled` 并发编排三个 Agent 生成 + 全局超时触发缓存 ~30min
-- [ ] T-004: imageHash/metadataHash/salt 计算与 commitHash 生成函数 ~15min
-- [ ] T-005: 预置三种风格缓存回退图片 + 缓存读取逻辑 ~30min
+- [x] T-003: `Promise.allSettled` 并发编排三个 Agent 生成 + 全局超时触发缓存 ~30min
+- [x] T-004: imageHash/metadataHash/salt 计算与 commitHash 生成函数 ~15min
+- [x] T-005: 预置三种风格缓存回退图片 + 缓存读取逻辑 ~30min
 
 ### 功能 3: API 接口
 
-- [ ] T-006: `POST /api/bounties/:id/generate` 与 `GET /api/jobs/:jobId` 接口实现（含内存 job 状态管理）~30min
+- [x] T-006: `POST /api/bounties/:id/generate` 与 `GET /api/jobs/:jobId` 接口实现（含内存 job 状态管理）~30min
+- [x] T-007: 补齐 Feature 4 交接契约（agentId/imageHash/metadataURI/salt/payoutAddress/commitHash）及 salt 服务端保密测试 ~15min
+- [x] T-008: `POST /api/bounties/:id/generate` 链上 creator 校验 + EIP-191 签名鉴权（codex-review 2026-08-15 finding 1/2 修复），拒绝未授权调用与不存在/超范围的 bountyId ~20min
 
 ## 依赖关系
 
@@ -35,6 +37,7 @@
 - T-003 依赖 T-002、T-005
 - T-004 依赖 T-003
 - T-006 依赖 T-003、T-004
+- T-007 依赖 T-004、T-006
 - 本 feature 整体依赖 `1.T-002`（commitHash 计算需与合约公式一致）
 
 ## 风险点

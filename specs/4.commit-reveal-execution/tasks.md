@@ -27,6 +27,7 @@
 
 - [ ] T-004: 三张 Agent 卡片组件（状态机 + Committed 态模糊锁定）~30min
 - [ ] T-005: 前端轮询 job 状态 + 三卡片同步 Reveal 翻转动画触发 ~30min
+- [ ] T-006: Commit/Reveal 链上证明 UI（真实 txHash/receipt 状态/Monad Explorer 链接）+ 禁止 Mock 成功测试 ~20min
 
 ## 依赖关系
 
@@ -35,6 +36,7 @@
 - T-003 依赖 T-002、`1.T-004`
 - T-004 依赖 `3.T-006`（job 状态接口存在）
 - T-005 依赖 T-002、T-003、T-004
+- T-006 依赖 T-002、T-003、T-004
 
 ## 风险点
 
