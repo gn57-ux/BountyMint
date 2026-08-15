@@ -70,7 +70,7 @@ export function WinnerSelection({ bountyId, agents }: { bountyId: bigint; agents
   const { address } = useAccount();
   const explorerBase = monadChain.blockExplorers?.default.url;
 
-  const { data: bounty, refetch: refetchBounty } = useReadContract({
+  const { data: bounty, isLoading: isBountyLoading, refetch: refetchBounty } = useReadContract({
     address: bountyMintAddress,
     abi: bountyMintAbi,
     functionName: "bounties",
@@ -193,8 +193,17 @@ export function WinnerSelection({ bountyId, agents }: { bountyId: bigint; agents
     }
   }
 
+  if (isBountyLoading) {
+    return <p className="text-body-sm text-on-surface-variant">{t.winner.loadingBounty}</p>;
+  }
+
   if (!isCreator) {
-    return <p className="text-body-sm text-on-surface-variant">{t.winner.notCreator}</p>;
+    return (
+      <p className="text-body-sm text-on-surface-variant">
+        {t.winner.notCreator}
+        {bounty ? ` (${bounty[0]})` : ""}
+      </p>
+    );
   }
 
   if (stage === "confirming") {

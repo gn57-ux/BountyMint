@@ -81,6 +81,7 @@ export const zhCN = {
     title: "选择获胜作品",
     selectPrompt: "点击一张已揭晓的作品，选为获胜者",
     selectButton: "选为获胜者",
+    loadingBounty: "正在读取悬赏链上状态…",
     notCreator: "只有该悬赏的发布者钱包可以选择获胜者",
     confirmTitle: "确认结算与铸造",
     confirmAgent: "Creator Agent",
