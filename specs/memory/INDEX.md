@@ -1,2 +1,3 @@
 - [git submodule add 后手动 checkout 会被嵌套 submodule update 重置](git-submodule-nested-checkout-reset.md) — 迁移 vendor 依赖为真实 submodule 时的正确顺序 | tags: git,submodule,foundry
 - [悬赏类合约的 deadline 必须在提交类接口中校验](contract-submission-deadline-enforcement.md) — 不能只在退款接口里检查过期，Commit/Reveal 也要拒绝过期提交 | tags: solidity,security,deadline
+- [RainbowKit + Turbopack 构建失败——不选 Coinbase 钱包也会被拖入 cdp-sdk](rainbowkit-turbopack-base-account-bundle-break.md) — alias `@base-org/account` 到 stub 一次性解决 `@x402/*` 级联报错 | tags: rainbowkit,wagmi,turbopack,nextjs

@@ -16,17 +16,17 @@
 
 ### 功能 1: 钱包与网络
 
-- [ ] T-001: 集成 RainbowKit + wagmi，`ConnectButton` 接入顶部导航，展示地址/MON 余额 ~30min
-- [ ] T-002: 自定义 Monad chain 配置（占位 RPC/Chain ID）+ 网络校验与一键切换组件 ~15min
+- [x] T-001: 集成 RainbowKit + wagmi，`ConnectButton` 接入顶部导航，展示地址/MON 余额 ~30min
+- [x] T-002: 自定义 Monad chain 配置（占位 RPC/Chain ID）+ 网络校验与一键切换组件 ~15min
 
 ### 功能 2: 创建悬赏表单
 
-- [ ] T-003: Brief/奖金/截止时间/授权声明表单组件（含默认 Brief 预填）~30min
+- [x] T-003: Brief/奖金/截止时间/授权声明表单组件（含默认 Brief 预填）~30min
 
 ### 功能 3: 创建交易
 
-- [ ] T-004: `createBounty` 合约写入集成（promptHash 计算 + pending/success/error 状态机）~30min
-- [ ] T-005: 创建成功跳转 CREATING 状态 + 语言词典接入 + 拒绝交易时保留表单内容 ~15min
+- [x] T-004: `createBounty` 合约写入集成（promptHash 计算 + pending/success/error 状态机）~30min
+- [x] T-005: 创建成功跳转 CREATING 状态 + 语言词典接入 + 拒绝交易时保留表单内容 ~15min
 
 ## 依赖关系
 

@@ -7,3 +7,9 @@ out/
 cache/
 broadcast/
 codex-review/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+npm-debug.log*
