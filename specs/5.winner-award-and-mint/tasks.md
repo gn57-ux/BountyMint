@@ -16,17 +16,22 @@
 
 ### 功能 1: 选择与确认
 
-- [ ] T-001: 获胜作品选择 UI（仅 Revealed 可点击 + 仅发布者可见）+ 二次确认弹窗 ~15min
+- [x] T-001: 获胜作品选择 UI（仅 Revealed 可点击 + 仅发布者可见）+ 二次确认弹窗 ~15min
 
 ### 功能 2: metadata 与结算
 
-- [ ] T-002: NFT metadata JSON 生成（按 PRD §14 规范，复用已上传 metadataURI）~15min
-- [ ] T-003: `awardWinner` 合约写入集成（pending/success/error 状态机，复用 feature 2 模式）~30min
+- [x] T-002: NFT metadata 复用 Reveal 阶段已上传的 metadataURI（无需重复生成/上传）~15min
+- [x] T-003: `awardWinner` 合约写入集成（pending/success/error 状态机，复用 feature 2 模式）~30min
 
 ### 功能 3: 结果展示
 
-- [ ] T-004: 获胜结果页（大图/Agent/奖励/tokenId/Hash/授权声明/浏览器链接）~30min
-- [ ] T-005: Award 后链上状态刷新（`ownerOf` 校验 + 悬赏状态同步为 Awarded）~15min
+- [x] T-004: 获胜结果页（大图/Agent/奖励/tokenId/imageHash/metadataURI/浏览器链接）~30min
+- [x] T-005: Award 后链上状态刷新（`ownerOf` 校验 + 悬赏状态同步为 Awarded）~15min
+
+## 验收状态说明
+
+- 真实实现：`awardWinner`/`ownerOf` 均为真实合约调用与读取，无 Mock。
+- 本沙箱无真实 Monad RPC/资金钱包，端到端演练（含 AC-001~007）随 Feature 7 部署后现场核验。
 
 ## 依赖关系
 

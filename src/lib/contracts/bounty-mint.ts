@@ -72,6 +72,23 @@ export const bountyMintAbi = [
     ],
   },
   {
+    type: "function",
+    name: "awardWinner",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "bountyId", type: "uint256" },
+      { name: "agentId", type: "uint8" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "ownerOf",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }],
+  },
+  {
     type: "event",
     name: "BountyCreated",
     inputs: [
@@ -102,6 +119,17 @@ export const bountyMintAbi = [
       { name: "agentId", type: "uint8", indexed: true },
       { name: "imageHash", type: "bytes32", indexed: false },
       { name: "metadataURI", type: "string", indexed: false },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "WinnerAwarded",
+    inputs: [
+      { name: "bountyId", type: "uint256", indexed: true },
+      { name: "agentId", type: "uint8", indexed: true },
+      { name: "tokenId", type: "uint256", indexed: true },
+      { name: "reward", type: "uint256", indexed: false },
     ],
     anonymous: false,
   },

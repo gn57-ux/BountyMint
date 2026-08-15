@@ -8,26 +8,34 @@ import { CreatingStatusPanel } from "@/components/creating-status-panel";
 import { CreatorArena } from "@/components/creator-arena";
 import { Header } from "@/components/header";
 import { NetworkBanner } from "@/components/network-banner";
+import { WinnerSelection } from "@/components/winner-selection";
 import { dictionary } from "@/lib/i18n";
+import type { PublicAgentState } from "@/lib/jobs";
 
 type CreatedBounty = { bountyId: bigint; txHash: Hash; brief: string };
-type PageStatus = "idle" | "creating";
+type PageStatus = "idle" | "creating" | "revealed";
 
 export default function Home() {
   const t = dictionary;
   const [status, setStatus] = useState<PageStatus>("idle");
   const [created, setCreated] = useState<CreatedBounty>();
+  const [revealedAgents, setRevealedAgents] = useState<PublicAgentState[]>([]);
 
   function handleCreated(result: CreatedBounty) {
     setCreated(result);
     setStatus("creating");
   }
 
+  function handleRevealed(agents: PublicAgentState[]) {
+    setRevealedAgents(agents);
+    setStatus("revealed");
+  }
+
   return (
     <>
       <Header />
       <NetworkBanner />
-      <main className="mx-auto flex w-full max-w-[800px] flex-grow flex-col items-center justify-center px-margin-mobile py-section-gap pt-32 md:px-gutter">
+      <main className="mx-auto flex w-full max-w-[1100px] flex-grow flex-col items-center justify-center px-margin-mobile py-section-gap pt-32 md:px-gutter">
         <section className="mb-12 w-full text-center">
           <h1 className="mb-6 whitespace-pre-line font-display-hero text-display-hero text-on-surface md:text-[64px] md:leading-[1.1] md:tracking-[-1.5px]">
             {t.hero.title}
@@ -38,10 +46,12 @@ export default function Home() {
         </section>
 
         <div className="flex w-full flex-col gap-8">
-          {status === "creating" && created ? (
+          {status === "revealed" && created ? (
+            <WinnerSelection bountyId={created.bountyId} agents={revealedAgents} />
+          ) : status === "creating" && created ? (
             <>
               <CreatingStatusPanel bountyId={created.bountyId} txHash={created.txHash} />
-              <CreatorArena bountyId={created.bountyId} brief={created.brief} />
+              <CreatorArena bountyId={created.bountyId} brief={created.brief} onRevealed={handleRevealed} />
             </>
           ) : (
             <CreateBountyForm onCreated={handleCreated} />

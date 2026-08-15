@@ -116,7 +116,15 @@ function AgentCard({ agent }: { agent: PublicAgentState }) {
   );
 }
 
-export function CreatorArena({ bountyId, brief }: { bountyId: bigint; brief: string }) {
+export function CreatorArena({
+  bountyId,
+  brief,
+  onRevealed,
+}: {
+  bountyId: bigint;
+  brief: string;
+  onRevealed?: (agents: PublicAgentState[]) => void;
+}) {
   const t = dictionary;
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -186,7 +194,18 @@ export function CreatorArena({ bountyId, brief }: { bountyId: bigint; brief: str
         const body = (await response.json()) as { status?: string; agents?: PublicAgentState[] };
         if (cancelled || !body.agents) return;
         setAgents(body.agents);
-        if (body.status === "revealed" || body.status === "failed") {
+        // job.status "revealed" only means every agent *settled* (revealed or
+        // permanently failed) — the contract itself only reaches its Revealed
+        // status once all three actually revealed (bounty.revealCount ==
+        // AGENT_COUNT). If one agent's reveal failed, the job still resolves
+        // to "revealed" here (so it isn't stuck as permanently active), but
+        // awardWinner would revert for every agent — so only hand off to
+        // winner selection when every agent is individually "revealed".
+        const allRevealed = body.agents.every((a) => a.status === "revealed");
+        if (body.status === "revealed" && allRevealed) {
+          setState("done");
+          onRevealed?.(body.agents);
+        } else if (body.status === "revealed" || body.status === "failed") {
           setState("done");
         }
       } catch {
@@ -200,7 +219,7 @@ export function CreatorArena({ bountyId, brief }: { bountyId: bigint; brief: str
       cancelled = true;
       clearInterval(interval);
     };
-  }, [jobId, state]);
+  }, [jobId, state, onRevealed]);
 
   return (
     <section className="w-full">
