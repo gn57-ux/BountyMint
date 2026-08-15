@@ -16,19 +16,19 @@
 
 ### 功能 1: 合约骨架与数据结构
 
-- [ ] T-001: 初始化 Foundry 工程，定义 `BountyStatus` 枚举、`Bounty`/`Submission` 结构体与 mapping 骨架 ~15min
+- [x] T-001: 初始化 Foundry 工程，定义 `BountyStatus` 枚举、`Bounty`/`Submission` 结构体与 mapping 骨架 ~15min
 
 ### 功能 2: 核心状态转换接口
 
-- [ ] T-002: 实现 `createBounty`（锁资 + deadline/零奖金校验）+ 单元测试 ~30min
-- [ ] T-003: 实现 `commitWork`（executor 权限 + 防重复 Commit）+ 单元测试 ~30min
-- [ ] T-004: 实现 `revealWork`（commitHash 校验）+ 单元测试（含错误 salt 场景）~30min
-- [ ] T-005: 实现 `awardWinner`（ReentrancyGuard + 支付 + ERC721 铸造）+ 单元测试（含重入攻击场景）~30min
-- [ ] T-006: 实现 `refundExpiredBounty` + 边界测试（截止前 revert、已 Awarded revert、截止后成功）~30min
+- [x] T-002: 实现 `createBounty`（锁资 + deadline/零奖金校验）+ 单元测试 ~30min
+- [x] T-003: 实现 `commitWork`（executor 权限 + 防重复 Commit）+ 单元测试 ~30min
+- [x] T-004: 实现 `revealWork`（commitHash 校验）+ 单元测试（含错误 salt 场景）~30min
+- [x] T-005: 实现 `awardWinner`（ReentrancyGuard + 支付 + ERC721 铸造）+ 单元测试（含重入攻击场景）~30min
+- [x] T-006: 实现 `refundExpiredBounty` + 边界测试（截止前 revert、已 Awarded revert、截止后成功）~30min
 
 ### 集成与部署
 
-- [ ] T-007: 编写 Foundry 部署脚本，使用占位 Monad RPC/Chain ID 环境变量 ~15min
+- [x] T-007: 编写 Foundry 部署脚本，使用占位 Monad RPC/Chain ID 环境变量 ~15min
 
 ## 依赖关系
 
