@@ -11,10 +11,11 @@ BountyMint 是部署在 Monad 上的 AI 原生创作悬赏协议。用户锁定�
 | 网络 | Monad Testnet（Chain ID `10143`） |
 | RPC | `https://testnet-rpc.monad.xyz/` |
 | Explorer | `https://testnet.monadexplorer.com/` |
-| 合约地址 | `<TBD: 部署后填入，见 contracts/script/Deploy.s.sol 输出>` |
+| 合约地址 | [`0x253722F7A82321979CC4a0eE876C9399907C971C`](https://testnet.monadexplorer.com/address/0x253722F7A82321979CC4a0eE876C9399907C971C) |
+| 部署交易 | [`0x45073e4690defc5502f3e4a814e1f6d4f27d33376e1f5ecb9c40cb41653fc910`](https://testnet.monadexplorer.com/tx/0x45073e4690defc5502f3e4a814e1f6d4f27d33376e1f5ecb9c40cb41653fc910) |
 | 公网 Demo URL | `<TBD: Vercel 部署后填入>` |
-| 一笔真实创建悬赏交易 | `<TBD>` |
-| 一笔真实 Award/NFT 铸造交易 | `<TBD>` |
+| 一笔真实创建悬赏交易 | `<TBD: 端到端演示后填入>` |
+| 一笔真实 Award/NFT 铸造交易 | `<TBD: 端到端演示后填入>` |
 
 ## 技术架构
 

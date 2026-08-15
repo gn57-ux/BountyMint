@@ -1,7 +1,15 @@
-import { createWalletClient, http, type Account } from "viem";
+import { createWalletClient, http, type Account, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { monadChain } from "./monad-chain.ts";
+
+// viem's privateKeyToAccount requires a "0x"-prefixed hex string, but a key
+// pasted from a wallet export or password manager commonly omits it — accept
+// either form rather than failing on a purely cosmetic difference.
+function normalizePrivateKey(key: string): Hex {
+  const trimmed = key.trim();
+  return (trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`) as Hex;
+}
 
 // executor represents a trusted server-held signer used only to submit/reveal
 // Creator Agent work (commitWork/revealWork) — never to withdraw bounty funds
@@ -12,7 +20,7 @@ function getExecutorAccount(): Account {
   if (!key) {
     throw new Error("EXECUTOR_PRIVATE_KEY is not configured");
   }
-  return privateKeyToAccount(key as `0x${string}`);
+  return privateKeyToAccount(normalizePrivateKey(key));
 }
 
 export function isExecutorConfigured(): boolean {
