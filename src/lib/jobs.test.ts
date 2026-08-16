@@ -31,8 +31,7 @@ test("toPublicAgentState never includes the salt field, even when set", () => {
 
   assert.equal("salt" in publicView, false);
   assert.equal(JSON.stringify(publicView).includes(secretSalt.slice(2)), false);
-  // The rest of the public contract fields (specs/3.agent-orchestration-generation
-  // design.md interface contract) must still be present.
+  // The rest of the public contract fields must still be present.
   assert.equal(publicView.agentId, 1);
   assert.equal(publicView.payoutAddress, PAYOUT_ADDRESSES[1]);
   assert.equal(publicView.imageHash, agent.imageHash);

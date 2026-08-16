@@ -11,15 +11,15 @@ import { LICENSE_DECLARATION } from "@/lib/license";
 import { publicClient } from "@/lib/monad-client";
 import { isRequestRateLimited } from "@/lib/rate-limit";
 
-// Covers the full chained pipeline (specs/4.commit-reveal-execution): the 25s
+// Covers the full chained pipeline: the 25s
 // generation deadline, two Pinata uploads per agent, three sequential commit
 // txs, then three sequential reveal txs — each awaited to a confirmed
 // receipt. This request now awaits that pipeline directly instead of
 // registering it as after() background work: on Vercel, a background
 // invocation and a later poll from a different serverless instance don't
 // share the in-memory job store, so GET /api/jobs/:jobId could 404 or never
-// observe completion — confirmed live on the deployed demo (2026-08-15,
-// see specs/LESSONS.md). The full pipeline finishes in well under a minute
+// observe completion — confirmed live on the deployed demo. The full pipeline
+// finishes in well under a minute
 // in practice, so awaiting it in-request and returning the final result
 // directly is simpler and actually reliable across instances.
 export const maxDuration = 120;

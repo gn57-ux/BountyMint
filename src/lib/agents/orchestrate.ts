@@ -18,9 +18,8 @@ function withGlobalDeadline(promise: Promise<Buffer>, deadlineMs: number): Promi
   ]);
 }
 
-// Real metadataURI only exists after specs/4.commit-reveal-execution uploads the
-// image/metadata to Pinata; commitHash gets recomputed there once it's known.
-// See specs/3.agent-orchestration-generation/design.md module 3.
+// Real metadataURI only exists after image/metadata upload to Pinata;
+// commitHash gets recomputed there once it's known.
 function placeholderMetadataURI(jobId: string, agentId: number): string {
   return `pending://${jobId}/${agentId}`;
 }
@@ -35,7 +34,7 @@ async function generateForAgent(
   let imageBuffer: Buffer;
   let source: "generated" | "cache_fallback";
 
-  // OpenAI is a soft dependency for this demo (specs/3.agent-orchestration-generation):
+  // OpenAI is a soft dependency for this demo:
   // without a configured key, skip straight to the pre-baked cache image instead of
   // opening a network request that's guaranteed to fail and racing it against the
   // global deadline — no wasted retry, no wasted wait.

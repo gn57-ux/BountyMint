@@ -1,10 +1,9 @@
 const PIN_FILE_URL = "https://api.pinata.cloud/pinning/pinFileToIPFS";
 const PIN_JSON_URL = "https://api.pinata.cloud/pinning/pinJSONToIPFS";
 
-// Storage plan is Pinata only (specs/4.commit-reveal-execution — no fallback
-// tier chosen for this feature). Missing config fails loudly rather than
+// Storage uses Pinata only, with no fallback tier. Missing config fails loudly rather than
 // silently degrading, so an unconfigured deploy is visible, not mistaken for
-// a working one — see .claude/rules/security.md on not faking on-chain state.
+// a working one.
 export function isPinataConfigured(): boolean {
   return Boolean(process.env.PINATA_JWT);
 }

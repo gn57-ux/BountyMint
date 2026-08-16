@@ -5,7 +5,7 @@ import { computeCommitHash, computeImageHash, computeMetadataHash } from "./hash
 
 // Fixed test vector, independently cross-verified byte-for-byte against
 // `cast abi-encode "f(uint256,uint8,bytes32,bytes32,bytes32)" ...` +
-// `cast keccak` (Foundry) — see specs/memory/verify-ts-hash-against-solidity-with-cast.md.
+// `cast keccak` (Foundry).
 // This pins the exact encoding so a future refactor can't silently drift from
 // contracts/src/BountyMint.sol's commitHash formula (AC-004).
 const BOUNTY_ID = 42n;

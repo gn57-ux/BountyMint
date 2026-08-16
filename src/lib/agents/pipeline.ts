@@ -133,7 +133,7 @@ async function submitReveal(bountyId: bigint, jobId: string, agent: AgentJobStat
     // ourselves from the same imageHash/metadataURI/salt we reveal with), so a
     // genuine mismatch shouldn't occur in correct code — this branch is for
     // transient failures (RPC/gas), not the "wrong salt" scenario exercised by
-    // contracts/test (specs/1.smart-contract-core), which is a contract-level
+    // contracts/test, which is a contract-level
     // revert test, not an executor operational path. Marking the agent failed
     // (not just recording the receipt status) is what lets the job reach a
     // terminal state instead of sitting at "committed" forever — an agent
@@ -148,10 +148,8 @@ async function submitReveal(bountyId: bigint, jobId: string, agent: AgentJobStat
   }
 }
 
-// Chains Feature 4's on-chain Commit/Reveal execution directly after Feature
-// 3's image generation completes, all within the same after() background
-// invocation (specs/4.commit-reveal-execution design.md: "无新增对外 HTTP 接口；
-// Commit/Reveal 为后端内部异步流程，由 generate 请求触发后自动串联执行").
+// Chains on-chain Commit/Reveal execution directly after image generation
+// completes, all within the same background invocation.
 export async function runFullPipeline(jobId: string, bountyId: bigint, brief: string): Promise<void> {
   await runOrchestration(jobId, bountyId, brief);
 
@@ -205,7 +203,7 @@ export async function runFullPipeline(jobId: string, bountyId: bigint, brief: st
   if (committed.length !== 3) return; // revealWork reverts unless all three commits landed
 
   // Sequential, not parallel — avoids nonce races on the same executor account
-  // (specs/4.commit-reveal-execution design.md technical decision).
+  // to prevent transaction ordering conflicts.
   for (const agent of committed) {
     await submitReveal(bountyId, jobId, agent);
   }

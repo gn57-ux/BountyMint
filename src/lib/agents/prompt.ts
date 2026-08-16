@@ -1,6 +1,6 @@
 import type { AgentPersona } from "./personas";
 
-// Fixed template per specs/3.agent-orchestration-generation/design.md — shared
+// Fixed template; shared
 // constraints keep the three outputs directly comparable for the winner pick.
 const SHARED_CONSTRAINTS =
   "Square composition, one primary character, no text, polished presentation, " +

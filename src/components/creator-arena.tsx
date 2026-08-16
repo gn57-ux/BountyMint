@@ -146,7 +146,7 @@ export function CreatorArena({
   // jobId to poll GET /api/jobs/:jobId afterward. On Vercel, that poll could
   // land on a different serverless instance than the one running the
   // background job, whose in-memory store never had it — confirmed live on
-  // the deployed demo (2026-08-15, see specs/LESSONS.md) as three cards
+  // the deployed demo as three cards
   // stuck on "generating" forever. Awaiting the single request sidesteps the
   // cross-instance dependency entirely.
   async function attemptGeneration() {
