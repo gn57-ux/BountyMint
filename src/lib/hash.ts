@@ -3,7 +3,6 @@ import { bytesToHex, encodeAbiParameters, keccak256, toBytes, type Hex } from "v
 
 // Mirrors contracts/src/BountyMint.sol's commitHash formula exactly:
 //   commitHash = keccak256(abi.encode(bountyId, agentId, imageHash, keccak256(bytes(metadataURI)), salt))
-// See specs/1.smart-contract-core and .claude/rules/smart-contract.md.
 
 export function computeImageHash(imageBuffer: Buffer): Hex {
   return keccak256(imageBuffer);

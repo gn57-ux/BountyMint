@@ -5,7 +5,7 @@ const REQUEST_TIMEOUT_MS = 15_000;
 let client: OpenAI | undefined;
 
 // Checked by the caller (orchestrate.ts) before attempting generation at all —
-// OpenAI is a soft dependency for this demo (see specs/3.agent-orchestration-generation),
+// OpenAI is a soft dependency for this demo,
 // so an unset key must route straight to the cache fallback without waiting on
 // a network round trip or the global generation deadline.
 export function isOpenAIConfigured(): boolean {
@@ -32,7 +32,7 @@ async function requestImage(prompt: string): Promise<Buffer> {
   return Buffer.from(b64, "base64");
 }
 
-// One retry on failure per specs/3.agent-orchestration-generation/design.md §模块2.
+// Retry once on failure.
 // Errors are intentionally not logged with full detail here — see security.md:
 // image-generation failures must not leak API-key-adjacent response bodies.
 export async function generateImage(prompt: string): Promise<Buffer> {

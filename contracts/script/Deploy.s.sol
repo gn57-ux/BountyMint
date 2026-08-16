@@ -6,8 +6,8 @@ import {BountyMint} from "../src/BountyMint.sol";
 
 /// @notice Deploys BountyMint. Reads EXECUTOR_ADDRESS (falls back to the deployer) and
 /// deploys with the broadcaster as owner. Run against MONAD_RPC_URL — see
-/// contracts/.env.example for the placeholder network parameters to replace on
-/// competition day (tracked in specs/7.deploy-and-demo-readiness/tasks.md T-002).
+/// contracts/.env.example for the placeholder network parameters to replace
+/// before a public deployment.
 contract DeployScript is Script {
     function run() external returns (BountyMint bounty) {
         uint256 expectedChainId = vm.envUint("MONAD_CHAIN_ID");

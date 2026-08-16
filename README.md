@@ -82,7 +82,7 @@ forge script script/Deploy.s.sol --rpc-url "$MONAD_RPC_URL" --broadcast
 - `OPENAI_API_KEY` — 可选，图片生成软依赖
 - `PINATA_JWT` — 图片/metadata 上传 IPFS
 - `EXECUTOR_PRIVATE_KEY` — 服务端 executor，仅用于提交/揭晓作品，不可提取悬赏资金
-- `AGENT_PAYOUT_ADDRESS_{PIXELFORGE,NEONMUSE,MYTHICAI}` — 各 Creator Agent 收款地址；未设置时回退到 Anvil 测试地址，**仅适用于本地 Anvil 链**，公网部署必须设置为真实地址（原因见下方 Vercel 清单与 `specs/LESSONS.md` 2026-08-15 条目）
+- `AGENT_PAYOUT_ADDRESS_{PIXELFORGE,NEONMUSE,MYTHICAI}` — 各 Creator Agent 收款地址；未设置时回退到 Anvil 测试地址，**仅适用于本地 Anvil 链**，公网部署必须设置为真实地址
 - `APP_URL` — 本应用公网 Origin，用于 NFT metadata 的 `external_url`
 
 `contracts/.env.example` 另含 `DEPLOYER_PRIVATE_KEY`、`EXECUTOR_ADDRESS`、`MONAD_CHAIN_ID` 等部署脚本用变量。
@@ -139,4 +139,4 @@ Vercel 首次部署会分配域名，回填 `APP_URL` 后触发一次 Redeploy �
 
 - 本次演示范围为桌面 Chrome，不含移动端适配。
 - 默认语言为简体中文，未提供英文切换。
-- 无数据库：图片生成进度是进程内临时状态，见 `specs/memory/vercel-serverless-in-memory-job-store-tradeoff.md`。
+- 无数据库：图片生成进度使用进程内临时状态，不保证跨 Serverless 实例共享。

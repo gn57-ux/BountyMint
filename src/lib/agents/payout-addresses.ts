@@ -2,8 +2,7 @@ import { getAddress, type Address } from "viem";
 
 import type { AgentPersona } from "./personas";
 
-// Placeholder Creator Agent payout wallets — replace with the official values
-// on competition day (see specs/7.deploy-and-demo-readiness). Defaults are
+// Placeholder Creator Agent payout wallets — replace before public deployment. Defaults are
 // Anvil/Hardhat's well-known deterministic test accounts (from the standard
 // "test test test test test test test test test test test junk" mnemonic),
 // chosen because any Solidity developer immediately recognizes them as
@@ -16,8 +15,8 @@ import type { AgentPersona } from "./personas";
 // what looks like a plain EOA into a smart account with its own fallback
 // logic — awardWinner's low-level `payoutAddress.call{value: reward}("")`
 // then depends on however that unrelated third-party contract behaves,
-// which failed outright during a live Monad Testnet smoke test (2026-08-15,
-// see specs/LESSONS.md). Set the AGENT_PAYOUT_ADDRESS_* env vars to real,
+// which failed outright during a live Monad Testnet smoke test. Set the
+// AGENT_PAYOUT_ADDRESS_* env vars to real,
 // never-before-used addresses (eth_getCode == 0x) before any real deploy —
 // do not rely on this fallback past local development.
 const DEFAULT_PAYOUT_ADDRESSES: Record<AgentPersona["slug"], Address> = {

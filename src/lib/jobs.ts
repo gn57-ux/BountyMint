@@ -12,8 +12,8 @@ export type AgentJobStatus =
 
 // Tracks the transient lifecycle of a single on-chain tx separately from the
 // coarse `status` above — `status` only flips to "committed"/"revealed" once
-// the corresponding receipt confirms (specs/4.commit-reveal-execution design.md
-// data model), so the UI can show Pending/Confirmed/Failed underneath a card
+// the corresponding receipt confirms, so the UI can show
+// Pending/Confirmed/Failed underneath a card
 // that's still showing "generated" while its commit tx is in flight.
 export type TxReceiptStatus = "pending" | "confirmed" | "failed";
 
@@ -33,8 +33,8 @@ export interface AgentJobState {
   revealTxHash?: Hash;
   revealReceiptStatus?: TxReceiptStatus;
   // Server-internal only — must never appear in a public API response before
-  // the corresponding on-chain Commit lands (specs/3.agent-orchestration-generation
-  // design.md, PRD §1.1). Revealing it early would let anyone forge the winning
+  // the corresponding on-chain Commit lands (PRD §1.1). Revealing it early
+  // would let anyone forge the winning
   // Commit/Reveal pair. See toPublicAgentState below and its test coverage.
   salt?: Hex;
   error?: string;
@@ -77,7 +77,7 @@ export function toPublicAgentState(agent: AgentJobState): PublicAgentState {
   // the image URI too) — Feature 4 fills these in as soon as Pinata upload
   // finishes, which is well before the on-chain Reveal. Gating them on
   // status === "revealed" is what actually enforces "揭晓前不展示任何作品内容"
-  // (specs/4.commit-reveal-execution AC-002); imageHash/commitHash are just
+  // until reveal; imageHash/commitHash are just
   // fingerprints and stay public throughout, same as before.
   const revealed = agent.status === "revealed";
   return {
@@ -108,12 +108,11 @@ export function toPublicAgentState(agent: AgentJobState): PublicAgentState {
 // probability" risk POST /api/bounties/:id/generate + GET /api/jobs/:jobId
 // polling accepted (PRD §15.2 rules out a database for business state, and
 // job progress isn't business state) — until it reproduced live and broke
-// the demo (2026-08-15, see specs/LESSONS.md). generate/route.ts now awaits
+// the deployed demo. generate/route.ts now awaits
 // the full pipeline in-request and returns the final result directly
 // instead of relying on a later poll to observe completion, so the primary
 // flow no longer depends on this Map being shared across instances. GET
 // /api/jobs/:jobId still has the same limitation if anything calls it.
-// See specs/memory/vercel-serverless-in-memory-job-store-tradeoff.md.
 const jobs = new Map<string, JobState>();
 
 export function createJob(
@@ -147,8 +146,7 @@ export function getJob(jobId: string): JobState | undefined {
 // txs are still in flight (job.status === "generated" or "committed", not
 // "generating") would kick off a second full pipeline for the same bounty,
 // wasting a second round of paid OpenAI/Pinata calls and racing on-chain
-// commitWork calls that would just revert as "already committed" (see
-// specs/memory/ for the original codex-review finding this addresses).
+// commitWork calls that would just revert as "already committed".
 export function findActiveJobByBountyId(bountyId: string): JobState | undefined {
   for (const job of jobs.values()) {
     if (job.bountyId === bountyId && job.status !== "revealed" && job.status !== "failed") {

@@ -13,7 +13,7 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "bountymin
 
 // Deliberately excludes RainbowKit's Coinbase/Base wallet connectors: they pull in
 // @coinbase/cdp-sdk's optional @x402/* payment packages, which break Turbopack's
-// static import resolution (see specs/memory/ for the write-up) and add no value
+// static import resolution and add no value
 // for a Monad-only hackathon MVP.
 const connectors = connectorsForWallets(
   [

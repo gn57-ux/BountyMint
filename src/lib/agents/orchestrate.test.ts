@@ -6,8 +6,7 @@ import { runOrchestration } from "./orchestrate.ts";
 
 // This is a real end-to-end run of the orchestration module (no mocking):
 // with OPENAI_API_KEY unset it must skip straight to the pre-baked cache
-// images under public/assets/fallback, and still compute real hashes — see
-// specs/3.agent-orchestration-generation AC-008.
+// images under public/assets/fallback, and still compute real hashes.
 test("runOrchestration falls back to cache images with real hashes when OPENAI_API_KEY is unset", async () => {
   const original = process.env.OPENAI_API_KEY;
   delete process.env.OPENAI_API_KEY;

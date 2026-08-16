@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-// Mirrors contracts/src/BountyMint.sol (specs/1.smart-contract-core). Extend this ABI
+// Mirrors contracts/src/BountyMint.sol. Extend this ABI
 // as later features (Commit/Reveal, award, refund) need more of the contract surface.
 export const bountyMintAbi = [
   {

@@ -11,7 +11,7 @@ const PAYOUT_ADDRESSES = {
 } as const;
 
 // This sandbox has no real Monad RPC / executor key / Pinata JWT configured
-// (no .env file at all — see specs/memory), so this is a real, unmocked
+// (no .env file at all), so this is a real, unmocked
 // exercise of runFullPipeline's setup-failure path (codex-review 2026-08-15
 // finding 2): the chain read for promptHash fails against the placeholder RPC
 // URL, and the pipeline must still resolve the job to a terminal state

@@ -13,7 +13,7 @@ function normalizePrivateKey(key: string): Hex {
 
 // executor represents a trusted server-held signer used only to submit/reveal
 // Creator Agent work (commitWork/revealWork) — never to withdraw bounty funds
-// (PRD §19.1/§12.5, .claude/rules/backend-api.md). Private key only ever read
+// (PRD §19.1/§12.5). Private key only ever read
 // from a server-side env var, never sent to the client.
 function getExecutorAccount(): Account {
   const key = process.env.EXECUTOR_PRIVATE_KEY;
